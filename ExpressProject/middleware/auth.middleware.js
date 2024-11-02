@@ -2,7 +2,6 @@ const { verifyToken } = require('../utils/jwt');
 const User = require('../models/User');
 const { logger } = require('../utils/logger'); 
 
-//TODO check if token is exist in db
 exports.verify = async (req, res, next) => {
     logger.info(`[WEB] auth.middleware verifying token...`);
     const token = req.header('Authorization').replace('Bearer ', '');
@@ -19,6 +18,12 @@ exports.verify = async (req, res, next) => {
     }
 
     req.user = await User.findOne({ where: { email: decoded.email } });
+
+    if(req.user.token !== token) {
+        logger.warn(`[WEB] auth.middleware token mismatch`);
+        return res.status(400).send({ error: 'Token mismatch' });
+    }
+
     logger.info(`[WEB] auth.middleware token verified`);
     next();
    };
