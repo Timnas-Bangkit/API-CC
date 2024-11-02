@@ -1,0 +1,40 @@
+# This file contains requests for user authentication: login & register.
+# to invoke these requests, you don't need to be authenticated.
+
+# === Request: User Register ===
+# this request is for registering a new user. 
+# the request body should contain the following fields:
+# - username: the username of the new user
+# - email: the email of the new user
+# - password: the password of the new user
+# the request will return a success meesage if possible
+# 409 status code if email already exists
+# 500 status code if an error occurred
+POST http://localhost:3000/api/register
+Content-Type: application/json
+
+{
+  "username": "newuser",
+  "email": "newuser@example.com",
+  "password": "securepassword123"
+}
+
+###
+
+# === Request: User Login ===
+# this request is for logging in an existing user.
+# the request body should contain the following fields:
+# - email: the email of the user
+# - password: the password of the user
+# the request will return a JWT token if possible
+# 400 status code if email or password are incorrect
+# 500 status code if an error occurred
+POST http://localhost:3000/api/login
+Content-Type: application/json
+
+{
+  "email": "newuser@example.com",
+  "password": "securepassword123"
+}
+
+###

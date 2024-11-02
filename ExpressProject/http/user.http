@@ -1,0 +1,10 @@
+# This file contains requests for user actions: logout, ...
+# to invoke these requests, you need to be authenticated first
+
+# === Request: Logout ===
+# this request is used to logout the user
+# the request body is empty
+# the request will erase access token if possible
+# 500 status code if an error occured
+POST http://localhost:3000/api/users/logout
+Authorization: Bearer <access_token>
