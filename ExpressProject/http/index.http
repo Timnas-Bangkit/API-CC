@@ -10,7 +10,7 @@
 # the request will return a success meesage if possible
 # 409 status code if email already exists
 # 500 status code if an error occurred
-POST http://localhost:3000/api/register
+POST http://localhost:3000/api/users/register
 Content-Type: application/json
 
 {
@@ -29,7 +29,7 @@ Content-Type: application/json
 # the request will return a JWT token if possible
 # 400 status code if email or password are incorrect
 # 500 status code if an error occurred
-POST http://localhost:3000/api/login
+POST http://localhost:3000/api/users/login
 Content-Type: application/json
 
 {
