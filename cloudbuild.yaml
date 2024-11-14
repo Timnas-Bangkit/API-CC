@@ -1,0 +1,26 @@
+steps:
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        gsutil cp gs://money-tracker123/$_ENV_PATH ./ExpressProject/.env
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'asia-southeast2-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/findup-api-$_CONTEXT:$COMMIT_SHA'
+      - '-f'
+      - 'ExpressProject/Dockerfile'
+      - 'ExpressProject'
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'asia-southeast2-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/findup-api-$_CONTEXT:$COMMIT_SHA']
+
+images:
+  - 'asia-southeast2-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/findup-api-$_CONTEXT:$COMMIT_SHA'
+
+logsBucket: 'gs://findup-logs/cloud-build/$_CONTEXT/logs'
+options:
+  logging: GCS_ONLY

@@ -7,7 +7,8 @@ const dbConfig = {
     database: process.env.DB_NAME || 'db_test',
     dialect: process.env.DB_DIALECT || 'mysql',
     port: process.env.DB_PORT || 3306,
-    forceDrop: process.env.DB_DROP || 'false',
+    forceDrop: process.env.DB_DROP === 'true' ? true : false,
+    socketPath: process.env.DB_SOCKET || null,
 };
 
 module.exports = dbConfig;

@@ -7,6 +7,9 @@ const sequelize = new Sequelize(dbConfig.database, dbConfig.user, dbConfig.passw
     host: dbConfig.host,
     dialect: dbConfig.dialect,
     logging: false,
+    dialectOptions: {
+        socketPath: dbConfig.socketPath
+    }
 });
 
 sequelize.authenticate()
