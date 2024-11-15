@@ -4,7 +4,7 @@ steps:
     args:
       - '-c'
       - |
-        gsutil cp gs://money-tracker123/$_ENV_PATH ./ExpressProject/.env
+        gsutil cp gs://findup/$_ENV_PATH ./ExpressProject/.env
 
   - name: 'gcr.io/cloud-builders/docker'
     args:
