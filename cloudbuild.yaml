@@ -29,7 +29,7 @@ steps:
       - '--region'
       - 'asia-southeast2'
       - '--add-cloudsql-instances'
-      - '$PROJECT_ID:$_SQL_INSTANCE'
+      - '"$PROJECT_ID:$_SQL_INSTANCE"'
       - '--allow-unauthenticated'
 
 images:
