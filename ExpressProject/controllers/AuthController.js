@@ -40,9 +40,13 @@ exports.login = async (req, res) => {
         const token = generateToken({ username: user.username, email: user.email });
         user.token = token;
         const ret = await user.save();
-        if (!ret) throw new Error('Failed to save torken');
+        if (!ret) throw new Error('Failed to save token');
         logger.info(`[WEB] /login user logged in for email: ${user.email}`)
-        res.status(200).json({ token: token });
+        res.status(200).json({ message: 'Login success', data: {
+          id: user.id,
+          username: user.name,
+          token: user.token
+        } });
     } catch (error) {
         logger.error(`[WEB] /login bouncing an error: ${error}`);
         res.status(500).json({ message: 'Server error' });
