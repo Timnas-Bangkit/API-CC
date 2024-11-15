@@ -18,6 +18,20 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'asia-southeast2-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/findup-api-$_CONTEXT:$COMMIT_SHA']
 
+  - name: 'gce.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - 'run-findup-$_CONTEXT'
+      - '--image'
+      - 'asia-southeast2-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/findup-api-$_CONTEXT:$COMMIT_SHA'
+      - '--region'
+      - 'asia-southeast2'
+      - '--add-cloudsql-instances'
+      - '$PROJECT_ID:$_SQL_INSTANCE'
+      - '--allow-unauthenticated'
+
 images:
   - 'asia-southeast2-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/findup-api-$_CONTEXT:$COMMIT_SHA'
 
