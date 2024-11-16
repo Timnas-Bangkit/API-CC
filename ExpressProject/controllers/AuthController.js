@@ -1,6 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
+const UserProfile = require('../models/UserProfile');
 const { logger } = require('../utils/logger');
 const { generateToken } = require('../utils/jwt'); 
 
@@ -15,7 +16,9 @@ exports.register = async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
         const newUser = await User.create({ username: username, email: email, password: hashedPassword });
+        const profile = await UserProfile.create({ name: username });
 
+      newUser.setUser_profile(profile);
         logger.info(`[WEB] /register user registered: ${username} ${email}`);
         res.status(200).json({ message: 'User registered successfully' });
     } catch (error) {
@@ -44,7 +47,8 @@ exports.login = async (req, res) => {
         logger.info(`[WEB] /login user logged in for email: ${user.email}`)
         res.status(200).json({ message: 'Login success', data: {
           id: user.id,
-          username: user.name,
+          username: user.username,
+          email: user.email,
           token: user.token
         } });
     } catch (error) {

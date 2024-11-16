@@ -1,7 +1,10 @@
 const { DataTypes } = require('sequelize');
 const { sequelize, Sequelize } = require('../models/index');
+const UserProfile = require('./UserProfile');
 
-const User = sequelize.define('User', {
+//TODO new model for user profile
+//TODO role
+const User = sequelize.define('user', {
     id: {
         type: Sequelize.INTEGER,
         autoIncrement: true,
@@ -26,8 +29,19 @@ const User = sequelize.define('User', {
     },
     token: {
         type: Sequelize.STRING,
-        allowNull: true
-    }
+        allowNull: true,
+        defaultValue: null
+    },
 });
+
+User.prototype.responseData = async function(){
+  return {
+    id: this.id,
+    username: this.username,
+    profile: await (await this.getUser_profile()).responseData(),
+  }
+}
+
+User.hasOne(UserProfile);
 
 module.exports = User;
