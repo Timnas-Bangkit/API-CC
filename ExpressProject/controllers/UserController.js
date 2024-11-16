@@ -71,16 +71,26 @@ exports.updateProfile = async (req, res) => {
   })
 }
 
-
 exports.updateProfilePic = async (req, res) => {
   const file = req.file;
+  if(!(file.mimetype === 'image/png' || file.mimetype === 'image/jpeg')){
+    return res.status(400).json({message: 'unsupported format'});
+  }
+  const profile = await req.user.getUser_profile();
   if(!file){
     return res.status(400).json({
       message: 'no file uploaded',
     });
   }
+
+  let filename = '';
+  const arr = profile.profilePic.split('/');
+  if(arr[arr.length - 1] == 'default.jpg' || null){
+    filename = bucketConfig.picPath + generateRandomFilename(file.originalname);
+  }else{
+    filename = bucketConfig.picPath + arr[arr.length - 1];
+  }
   
-  const filename = bucketConfig.picPath + generateRandomFilename(file.originalname);
   const fileUpload = bucket.file(filename);
   await fileUpload.save(file.buffer, {
     contentType: file.mimetype
@@ -93,12 +103,34 @@ exports.updateProfilePic = async (req, res) => {
     }
   });
   
-  const profile = await req.user.getUser_profile();
   profile.profilePic = 'https://storage.googleapis.com/' + bucketConfig.name + '/' + filename;
   await profile.save();
 
   res.status(200).json({
     message: 'success updating profile pic',
     data: await profile.responseData(),
+  });
+}
+
+exports.deleteProfilePic = async (req, res) => {
+  const profile = await req.user.getUser_profile();
+  const arr = profile.profilePic.split('/');
+  if(arr[arr.length - 1] == 'default.jpg'){
+    return res.status(403).json({
+      message: 'failed to remove picture'
+    });
+  }
+
+  const filename = bucketConfig.picPath + arr[arr.length - 1];
+  await bucket.file(filename).delete().then(async () => {
+    profile.profilePic = 'https://storage.googleapis.com/findup-public/default.jpg';
+    await profile.save();
+    res.status(200).json({
+      message: 'success removing picture',
+    });
+  }).catch((err) => {
+    return res.status(403).json({
+      message: 'failed to remove picture'
+    });
   });
 }

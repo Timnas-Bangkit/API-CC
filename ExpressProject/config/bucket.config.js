@@ -1,8 +1,8 @@
 const { Storage } = require('@google-cloud/storage');
 const bucketConfig = {
-  name: 'findup',
-  url: 'gs://findup',
-  picPath: (process.env.CONTEXT || 'dev') + '/public/profile-pic/',
+  name: 'findup-public',
+  url: 'gs://findup-public',
+  picPath: (process.env.CONTEXT || 'dev') + '/profile-pic/',
   key: process.env.SERVICEACCOUNT_KEY || null
 }
 

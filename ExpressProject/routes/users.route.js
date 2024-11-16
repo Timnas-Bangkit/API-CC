@@ -16,5 +16,6 @@ router.get('/:id', userController.getUser);
 router.post('/logout', userController.logout);
 router.put('/', userController.updateProfile);
 router.post('/profile-pic', upload.single('file'), userController.updateProfilePic);
+router.delete('/profile-pic', userController.deleteProfilePic);
 
 module.exports = router;

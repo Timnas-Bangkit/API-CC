@@ -10,7 +10,7 @@ const UserProfile = sequelize.define('user_profile', {
   },
   profilePic: {
     type: Sequelize.STRING,
-    defaultValue: 'https://storage.googleapis.com/findup/public/default.jpg',
+    defaultValue: 'https://storage.googleapis.com/findup-public/default.jpg',
   },
   name: {
     type: Sequelize.STRING,
