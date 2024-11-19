@@ -1,5 +1,5 @@
 const express = require('express');
-const {User} = require('../models');
+const {User, Post} = require('../models');
 const { logger } = require('../utils/logger');
 const { bucket, bucketConfig } = require('../config/bucket.config')
 const UserProfile = require('../models/UserProfile');
@@ -25,17 +25,18 @@ exports.get = async (req, res) => {
 }
 
 exports.getUser = async (req, res) => {
-  const user = await User.findByPk(req.params.id);
+  const user = await User.findByPk(req.params.id, {attributes: {exclude: ['password', 'token', 'updatedAt']},
+    include: [
+      {model: UserProfile, attributes: {exclude: ['id', 'userId', 'createdAt']}},
+      {model: Post, attributes: {exclude: 'userId'}},
+    ]
+  });
   if(user == null){
     logger.error(`[WEB] /api/users/get/{id} id not found`);
     return res.status(404).json({ message: 'id not found' });
   }
 
-  res.status(200).json({ message: 'success retrieve data', data: {
-    id: user.id,
-    username: user.username,
-    profile: await (await user.getUser_profile()).responseData(),
-  }});
+  res.status(200).json({ message: 'success retrieve data', data: user});
 }
 
 //TODO paginate
