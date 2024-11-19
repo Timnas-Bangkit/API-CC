@@ -1,17 +1,10 @@
 const express = require('express');
-const User = require('../models/User');
+const {User} = require('../models');
 const { logger } = require('../utils/logger');
 const { bucket, bucketConfig } = require('../config/bucket.config')
-const crypto = require('crypto');
-const path = require('path');
 const UserProfile = require('../models/UserProfile');
 const multer = require('multer');
-
-const generateRandomFilename = (originalname) => {
-    const randomString = crypto.randomBytes(16).toString('hex');
-    const extname = path.extname(originalname);
-    return `${randomString}${extname}`;
-}
+const { generateRandomFilename } = require('../helper/generator');
 
 exports.logout = async (req, res) => {
     const ret = await req.user.save();
@@ -48,7 +41,10 @@ exports.getUser = async (req, res) => {
 //TODO paginate
 exports.getAllUsers = async (req, res) => {
   const users = await User.findAll({
-    attributes: ['id', 'username']
+    attributes: ['id', 'username'],
+    include: [
+      {model: UserProfile, attributes: ['name', 'profilePic']}
+    ]
   });
   res.status(200).json({
     message: "success retrieve data",

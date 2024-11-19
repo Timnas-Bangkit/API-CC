@@ -1,6 +1,7 @@
 const { DataTypes } = require('sequelize');
-const { sequelize, Sequelize } = require('../models/index');
+const { sequelize, Sequelize } = require('../models/sequelize');
 const UserProfile = require('./UserProfile');
+const Post = require('./Post')
 
 //TODO new model for user profile
 //TODO role
@@ -39,9 +40,16 @@ User.prototype.responseData = async function(){
     id: this.id,
     username: this.username,
     profile: await (await this.getUser_profile()).responseData(),
+    posts: await (await this.getPost()).responseData(),
+  }
+}
+User.prototype.data = async function(){
+  return {
+    id: this.id,
+    username: this.username,
+    profile: await (await this.getUser_profile()).responseData(),
   }
 }
 
-User.hasOne(UserProfile);
 
 module.exports = User;

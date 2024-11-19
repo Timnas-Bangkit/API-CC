@@ -4,11 +4,12 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var indexRouter = require('./routes/index.route');
 var usersRouter = require('./routes/users.route');
+var postsRouter = require('./routes/posts.route');
 
 const debugMiddleware = require('./middleware/debug.middleware');
 
 const { logger } = require('./utils/logger');
-const { sequelize } = require('./models/index');
+const { sequelize } = require('./models/sequelize');
 const dbConfig = require('./config/db.config');
 
 sequelize.sync({ force: dbConfig.forceDrop })
@@ -34,6 +35,7 @@ app.use(debugMiddleware.incomingRequest);
 
 app.use('/api/', indexRouter);
 app.use('/api/users', usersRouter);
+app.use('/api/posts', postsRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
