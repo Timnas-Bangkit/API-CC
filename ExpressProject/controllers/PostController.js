@@ -153,3 +153,41 @@ exports.delete = async (req, res) => {
     message: 'success deleting post',
   });
 }
+
+exports.setLike = async (req, res) => {
+  const postId = req.params.id;
+
+  const post = await Post.findByPk(postId);
+  if(post == null){
+    logger.error(`[WEB] /api/posts/{id}/like id not found`);
+    return res.status(404).json({ message: 'id not found' });
+  }
+
+  liked = await post.hasUserLike(req.user.id);
+  if(!liked){
+    await post.addUserLike(req.user);
+    post.likeCount += 1;
+    await post.save();
+    return res.status(200).json({ mesage: 'liked!' });
+  }
+  return res.status(409).json({ message: 'post already liked by the user.' });
+}
+
+exports.delLike = async (req, res) => {
+  const postId = req.params.id;
+
+  const post = await Post.findByPk(postId);
+  if(post == null){
+    logger.error(`[WEB] /api/posts/{id}/like id not found`);
+    return res.status(404).json({ message: 'id not found' });
+  }
+
+  liked = await post.hasUserLike(req.user.id);
+  if(!liked){
+    return res.status(409).json({ message: 'post not yet liked by the user.' });
+  }
+  await post.removeUserLike(req.user);
+  post.likeCount -= 1;
+  await post.save();
+  return res.status(200).json({ mesage: 'unlike!' });
+}

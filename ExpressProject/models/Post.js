@@ -8,7 +8,7 @@ const Post = sequelize.define('post', {
     primaryKey: true,
   },
   title: {
-type: Sequelize.STRING,
+    type: Sequelize.STRING,
     allowNull: false
   },
   description: {
@@ -18,6 +18,10 @@ type: Sequelize.STRING,
     type: Sequelize.STRING,
     defaultValue: null
   },
+  likeCount: {
+    type: Sequelize.INTEGER,
+    defaultValue: 0
+  }
 });
 
 Post.prototype.responseData = async function(){
