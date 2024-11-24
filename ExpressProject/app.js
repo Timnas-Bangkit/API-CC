@@ -9,7 +9,7 @@ var postsRouter = require('./routes/posts.route');
 const debugMiddleware = require('./middleware/debug.middleware');
 
 const { logger } = require('./utils/logger');
-const { sequelize } = require('./models/sequelize');
+const { sequelize } = require('./config/sequelize.config');
 const dbConfig = require('./config/db.config');
 
 sequelize.sync({ force: dbConfig.forceDrop })
