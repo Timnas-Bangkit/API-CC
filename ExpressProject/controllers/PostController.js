@@ -5,25 +5,38 @@ const { bucket, bucketConfig } = require('../config/bucket.config')
 const { logger } = require('../utils/logger');
 const { post } = require('../app');
 
-const getNarrowData = async (id=null) => {
+const getNarrowData = async (user, id=null) => {
   if(id == null){
-    return await Post.findAll({include: [
+    const ret = await Post.findAll({include: [
       {model: User, attributes: ['id'], 
         include: [{model: UserProfile, attributes: ['name', 'profilePic']}]},
-    ], attributes: {exclude: 'userId'}});
+    ], attributes: ['id', 'title', 'description', 'image', 'likeCount', 'updatedAt', 'createdAt']});
+
+    for(const post of ret){
+      post.setDataValue('isLiked', await post.hasUserLike(user));
+    }
+    return ret;
   }else{
-    return await Post.findByPk(id, { attributes: {exclude: 'userId'},
+    const ret = await Post.findByPk(id, { attributes: {exclude: 'userId'},
       include: [
         {model: User, attributes: {exclude: ['password', 'token']}, include: [
           {model: UserProfile, attributes: ['name', 'profilePic']}
         ]}
       ]
-    })
+    });
+    if(ret){
+      ret.setDataValue('isLiked', await ret.hasUserLike(user));
+      ret.setDataValue('neededRole', ret.neededRole.split(','));
+      return ret;
+    }else{
+      return null;
+    }
   }
 }
 
 exports.getAll = async (req, res) => {
-  const posts = await getNarrowData();
+  const posts = await getNarrowData(req.user);
+  console.log(posts[0].title);
   res.status(200).json({
     message: 'success retrieve data',
     data: posts,
@@ -31,7 +44,7 @@ exports.getAll = async (req, res) => {
 }
 
 exports.get = async (req, res) => {
-  const post = await getNarrowData(req.params.id);
+  const post = await getNarrowData(req.user, req.params.id);
   if(post == null){
     logger.error(`[WEB] /api/posts/get/{id} id not found`);
     return res.status(404).json({ message: 'id not found' });
@@ -43,14 +56,14 @@ exports.get = async (req, res) => {
 }
 
 exports.create = async (req, res) => {
-  const {title, description} = req.body;
+  const {title, description, summary, detail, neededRole} = req.body;
   const image = req.file;
   if(!image || !(image.mimetype === 'image/png' || image.mimetype === 'image/jpeg')){
     return res.status(400).json({message: 'unsupported format'});
   }
 
-  if(!title){
-    return res.status(400).json({message: 'title need to be filled'});
+  if(!title || !description){
+    return res.status(400).json({message: 'title or description need to be filled'});
   }
   
   const filename = bucketConfig.postPath + generateRandomFilename(image.originalname);
@@ -68,8 +81,12 @@ exports.create = async (req, res) => {
   post.title = title;
   post.description = description;
   post.image = 'https://storage.googleapis.com/' + bucketConfig.name + '/' + filename;
+  post.summary = summary;
+  post.detail = detail;
+  post.neededRole = neededRole.toString();
   await post.save();
   post.setUser(req.user);
+  post.neededRole = post.neededRole.split(',');
 
   res.status(201).json({
     message: 'success creating post',
@@ -91,13 +108,22 @@ exports.update = async (req, res) => {
     });
   }
 
-  const {title, description} = req.body;
+  const {title, description, summary, detail, neededRole} = req.body;
   const image = req.file;
   if(title){
     post.title = title;
   }
   if(description){
     post.description = description;
+  }
+  if(summary){
+    post.summary = summary;
+  }
+  if(detail){
+    post.detail = detail;
+  }
+  if(neededRole){
+    post.neededRole = neededRole.toString();
   }
   if(image){
     let filename = '';

@@ -14,6 +14,15 @@ const Post = sequelize.define('post', {
   description: {
     type: Sequelize.STRING,
   },
+  summary: {
+    type: Sequelize.STRING,
+  },
+  neededRole: {
+    type: Sequelize.STRING,
+  },
+  detail: {
+    type: Sequelize.STRING,
+  },
   image: {
     type: Sequelize.STRING,
     defaultValue: null
