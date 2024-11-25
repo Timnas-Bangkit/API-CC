@@ -36,7 +36,6 @@ const getNarrowData = async (user, id=null) => {
 
 exports.getAll = async (req, res) => {
   const posts = await getNarrowData(req.user);
-  console.log(posts[0].title);
   res.status(200).json({
     message: 'success retrieve data',
     data: posts,
