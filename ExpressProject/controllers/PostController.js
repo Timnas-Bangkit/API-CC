@@ -37,6 +37,7 @@ const getNarrowData = async (user, id=null) => {
 exports.getAll = async (req, res) => {
   const posts = await getNarrowData(req.user);
   res.status(200).json({
+    error: false,
     message: 'success retrieve data',
     data: posts,
   });
@@ -49,7 +50,8 @@ exports.get = async (req, res) => {
     return res.status(404).json({ message: 'id not found' });
   }
 
-  res.status(200).json({ message: 'success retrieve data', 
+  res.status(200).json({ error: false, message: 'success retrieve data', 
+    error: false,
     data: post,
   });
 }
@@ -57,37 +59,44 @@ exports.get = async (req, res) => {
 exports.create = async (req, res) => {
   const {title, description, summary, detail, neededRole} = req.body;
   const image = req.file;
-  if(!image || !(image.mimetype === 'image/png' || image.mimetype === 'image/jpeg')){
-    return res.status(400).json({message: 'unsupported format'});
-  }
 
   if(!title || !description){
-    return res.status(400).json({message: 'title or description need to be filled'});
+    return res.status(400).json({error: true, message: 'title or description need to be filled'});
   }
-  
-  const filename = bucketConfig.postPath + generateRandomFilename(image.originalname);
-  const fileUpload = bucket.file(filename);
-  await fileUpload.save(image.buffer, {
-    contentType: image.mimetype
-  }).catch((err)=>{
-    logger.error(`[WEB] failed to save bucket object`);
-    return res.status(500).json({
-      message: 'failed to save file',
-    });
-  });
-
   const post = new Post();
   post.title = title;
   post.description = description;
-  post.image = 'https://storage.googleapis.com/' + bucketConfig.name + '/' + filename;
-  post.summary = summary;
-  post.detail = detail;
-  post.neededRole = neededRole.toString();
+  if(summary) post.summary = summary;
+  if(detail) post.detail = detail;
+  if(neededRole) post.neededRole = neededRole.toString();
+  post.image = null;
+
+  if(image){
+    if(!(image.mimetype === 'image/png' || image.mimetype === 'image/jpeg')){
+      return res.status(400).json({error: true, message: 'unsupported format'});
+    }
+
+    const filename = bucketConfig.postPath + generateRandomFilename(image.originalname);
+    const fileUpload = bucket.file(filename);
+    await fileUpload.save(image.buffer, {
+      contentType: image.mimetype
+    }).catch((err)=>{
+      logger.error(`[WEB] failed to save bucket object`);
+      return res.status(500).json({
+        error: true,
+        message: 'failed to save file',
+      });
+    });
+    post.image = 'https://storage.googleapis.com/' + bucketConfig.name + '/' + filename;
+  }
+
   await post.save();
+
   post.setUser(req.user);
-  post.neededRole = post.neededRole.split(',');
+  if(post.neededRole) post.neededRole = post.neededRole.split(',');
 
   res.status(201).json({
+    error: false,
     message: 'success creating post',
     data: post,
   });
@@ -97,12 +106,13 @@ exports.update = async (req, res) => {
   const post = await Post.findByPk(req.params.id);
   if(post == null){
     logger.error(`[WEB] /api/posts/get/{id} id not found`);
-    return res.status(404).json({ message: 'id not found' });
+    return res.status(404).json({ error: true, message: 'id not found' });
   }
   
   const postUser = await post.getUser();
   if(req.user.id != postUser.id){
     return res.status(403).json({
+      error: true,
       message: 'cannot edit another user post',
     });
   }
@@ -140,6 +150,7 @@ exports.update = async (req, res) => {
     }).catch((err)=>{
       logger.error(`[WEB] failed to save bucket object`);
       return res.status(500).json({
+        error: true,
         message: 'failed to save file',
       });
     });
@@ -148,8 +159,10 @@ exports.update = async (req, res) => {
 
   //catch
   await post.save();
+  if(post.neededRole) post.neededRole = post.neededRole.split(',');
 
   res.status(200).json({
+    error: false,
     message: 'success updating post',
     data: post,
   });
@@ -159,22 +172,25 @@ exports.delete = async (req, res) => {
   const post = await Post.findByPk(req.params.id);
   if(post == null){
     logger.error(`[WEB] /api/posts/get/{id} id not found`);
-    return res.status(404).json({ message: 'id not found' });
+    return res.status(404).json({ error: true, message: 'id not found' });
   }
   
   const postUser = await post.getUser();
   if(req.user.id != postUser.id){
     return res.status(403).json({
+      error: true,
       message: 'cannot delete another user post',
     });
   }
 
   await post.destroy().catch((err)=>{
     return res.status(500).json({
+      error: true,
       message: 'failed to delete post',
     });
   });
   return res.status(200).json({
+    error: false,
     message: 'success deleting post',
   });
 }
@@ -185,7 +201,7 @@ exports.setLike = async (req, res) => {
   const post = await Post.findByPk(postId);
   if(post == null){
     logger.error(`[WEB] /api/posts/{id}/like id not found`);
-    return res.status(404).json({ message: 'id not found' });
+    return res.status(404).json({ error: true, message: 'id not found' });
   }
 
   liked = await post.hasUserLike(req.user.id);
@@ -193,9 +209,9 @@ exports.setLike = async (req, res) => {
     await post.addUserLike(req.user);
     post.likeCount += 1;
     await post.save();
-    return res.status(200).json({ mesage: 'liked!' });
+    return res.status(200).json({ error: false, mesage: 'liked!' });
   }
-  return res.status(409).json({ message: 'post already liked by the user.' });
+  return res.status(409).json({ error: true,  message: 'post already liked by the user.' });
 }
 
 exports.delLike = async (req, res) => {
@@ -204,15 +220,15 @@ exports.delLike = async (req, res) => {
   const post = await Post.findByPk(postId);
   if(post == null){
     logger.error(`[WEB] /api/posts/{id}/like id not found`);
-    return res.status(404).json({ message: 'id not found' });
+    return res.status(404).json({ error: true, message: 'id not found' });
   }
 
   liked = await post.hasUserLike(req.user.id);
   if(!liked){
-    return res.status(409).json({ message: 'post not yet liked by the user.' });
+    return res.status(409).json({ error: true, message: 'post not yet liked by the user.' });
   }
   await post.removeUserLike(req.user);
   post.likeCount -= 1;
   await post.save();
-  return res.status(200).json({ mesage: 'unlike!' });
+  return res.status(200).json({ error: false, mesage: 'unlike!' });
 }

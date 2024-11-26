@@ -40,7 +40,7 @@ User.prototype.responseData = async function(){
     id: this.id,
     username: this.username,
     profile: await (await this.getUser_profile()).responseData(),
-    posts: await (await this.getPost()).responseData(),
+    posts: await this.getPosts(),
   }
 }
 User.prototype.data = async function(){

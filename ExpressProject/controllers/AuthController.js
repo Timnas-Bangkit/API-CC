@@ -20,10 +20,10 @@ exports.register = async (req, res) => {
 
       newUser.setUser_profile(profile);
         logger.info(`[WEB] /register user registered: ${username} ${email}`);
-        res.status(200).json({ message: 'User registered successfully' });
+        res.status(200).json({ error: false, message: 'User registered successfully' });
     } catch (error) {
         logger.error(`[WEB] /register bouncing an error: ${error}`);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ error: false, message: 'Server error' });
     }
 };
 
@@ -33,19 +33,19 @@ exports.login = async (req, res) => {
         const user = await User.findOne({ where: { email: email } });
         if (!user) {
             logger.warn(`[WEB] /login Failed login attempt for email: ${email}`);
-            return res.status(400).json({ message: 'Invalid credentials' });
+            return res.status(400).json({ error: true, message: 'Invalid credentials' });
         }
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
             logger.warn(`[WEB] /login Failed login attempt for email: ${email}`);
-            return res.status(400).json({ message: 'Invalid credentials' });
+            return res.status(400).json({ error: true, message: 'Invalid credentials' });
         }
         const token = generateToken({ username: user.username, email: user.email });
         user.token = token;
         const ret = await user.save();
         if (!ret) throw new Error('Failed to save token');
         logger.info(`[WEB] /login user logged in for email: ${user.email}`)
-        res.status(200).json({ message: 'Login success', data: {
+        res.status(200).json({ error: false, message: 'Login success', data: {
           id: user.id,
           username: user.username,
           email: user.email,
@@ -53,6 +53,6 @@ exports.login = async (req, res) => {
         } });
     } catch (error) {
         logger.error(`[WEB] /login bouncing an error: ${error}`);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ error: true, message: 'Server error' });
     }
 };

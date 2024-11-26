@@ -10,15 +10,15 @@ exports.logout = async (req, res) => {
     const ret = await req.user.save();
     if(!ret) {
         logger.error(`[WEB] /api/v1/user/logout Failed to logout`);
-        return res.status(500).json({ message: 'Server error' })
+        return res.status(500).json({ error: true, message: 'Server error' })
     }
     req.user.token = null;
-    res.status(200).json({ message: 'User logged out successfully' });
+    res.status(200).json({ error: false, message: 'User logged out successfully' });
 }
 
 exports.get = async (req, res) => {
   const user = req.user;
-  res.status(200).json({ message: 'Success retrieve data', data: {
+  res.status(200).json({ error: false, message: 'Success retrieve data', data: {
     id: user.id,
     username: user.username,
   } });
@@ -33,10 +33,10 @@ exports.getUser = async (req, res) => {
   });
   if(user == null){
     logger.error(`[WEB] /api/users/get/{id} id not found`);
-    return res.status(404).json({ message: 'id not found' });
+    return res.status(404).json({ error: true, message: 'id not found' });
   }
 
-  res.status(200).json({ message: 'success retrieve data', data: user});
+  res.status(200).json({ error: false, message: 'success retrieve data', data: user});
 }
 
 //TODO paginate
@@ -48,6 +48,7 @@ exports.getAllUsers = async (req, res) => {
     ]
   });
   res.status(200).json({
+    error: false,
     message: "success retrieve data",
     data : users,
   });
@@ -63,6 +64,7 @@ exports.updateProfile = async (req, res) => {
   await profile.save();
 
   res.status(200).json({
+    erorr: false, 
     message: 'Success updating',
     data: await req.user.responseData(),
   })
@@ -70,14 +72,15 @@ exports.updateProfile = async (req, res) => {
 
 exports.updateProfilePic = async (req, res) => {
   const file = req.file;
-  if(!(file.mimetype === 'image/png' || file.mimetype === 'image/jpeg')){
-    return res.status(400).json({message: 'unsupported format'});
-  }
   const profile = await req.user.getUser_profile();
   if(!file){
     return res.status(400).json({
+      error: true,
       message: 'no file uploaded',
     });
+  }
+  if(!(file.mimetype === 'image/png' || file.mimetype === 'image/jpeg')){
+    return res.status(400).json({ error: true, message: 'unsupported format'});
   }
 
   let filename = '';
@@ -95,6 +98,7 @@ exports.updateProfilePic = async (req, res) => {
     if(err){
       logger.error(`[WEB] failed to save bucket object`);
       return res.status(500).json({
+        error: true,
         message: 'failed to save file',
       });
     }
@@ -104,6 +108,7 @@ exports.updateProfilePic = async (req, res) => {
   await profile.save();
 
   res.status(200).json({
+    error: false,
     message: 'success updating profile pic',
     data: await profile.responseData(),
   });
@@ -114,6 +119,7 @@ exports.deleteProfilePic = async (req, res) => {
   const arr = profile.profilePic.split('/');
   if(arr[arr.length - 1] == 'default.jpg'){
     return res.status(403).json({
+      error: true,
       message: 'failed to remove picture'
     });
   }
@@ -123,10 +129,12 @@ exports.deleteProfilePic = async (req, res) => {
     profile.profilePic = 'https://storage.googleapis.com/findup-public/default.jpg';
     await profile.save();
     res.status(200).json({
+      error: false,
       message: 'success removing picture',
     });
   }).catch((err) => {
     return res.status(403).json({
+      error: true,
       message: 'failed to remove picture'
     });
   });
