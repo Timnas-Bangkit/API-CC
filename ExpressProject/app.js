@@ -12,7 +12,7 @@ const { logger } = require('./utils/logger');
 const { sequelize } = require('./config/sequelize.config');
 const dbConfig = require('./config/db.config');
 
-sequelize.sync({ force: dbConfig.forceDrop })
+await sequelize.sync({ force: dbConfig.forceDrop })
     .then(() => {
         logger.info('[DB] Database sync complete.');
     })
