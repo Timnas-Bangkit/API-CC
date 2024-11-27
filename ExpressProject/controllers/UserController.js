@@ -73,15 +73,6 @@ exports.updateProfile = async (req, res) => {
 exports.updateProfilePic = async (req, res) => {
   const file = req.file;
   const profile = await req.user.getUser_profile();
-  if(!file){
-    return res.status(400).json({
-      error: true,
-      message: 'no file uploaded',
-    });
-  }
-  if(!(file.mimetype === 'image/png' || file.mimetype === 'image/jpeg')){
-    return res.status(400).json({ error: true, message: 'unsupported format'});
-  }
 
   let filename = '';
   const arr = profile.profilePic.split('/');

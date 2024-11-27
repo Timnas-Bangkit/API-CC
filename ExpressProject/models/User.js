@@ -2,6 +2,7 @@ const { DataTypes } = require('sequelize');
 const { sequelize, Sequelize } = require('../config/sequelize.config');
 const UserProfile = require('./UserProfile');
 const Post = require('./Post')
+const { roles } = require('../config/roles.config');
 
 //TODO new model for user profile
 //TODO role
@@ -21,6 +22,10 @@ const User = sequelize.define('user', {
         allowNull: false,
         isEmail: true
     },
+    role: {
+      type: Sequelize.STRING,
+      defaultValue: 'user',
+    },
     password: {
         type: DataTypes.STRING(64),
         allowNull: false,
@@ -34,6 +39,25 @@ const User = sequelize.define('user', {
         defaultValue: null
     },
 });
+
+User.prototype.getPermissions = function(){
+  for (let index = 0; index < roles.length; index++) {
+    const role = roles[index];
+    if(role.name == this.role){
+      return role.permissions;
+    }
+  }
+  return null;
+}
+
+User.prototype.response = function(){
+  return {
+    id: this.id,
+    username: this.username,
+    email: this.email,
+    role: this.role,
+  }
+}
 
 User.prototype.responseData = async function(){
   return {

@@ -60,9 +60,6 @@ exports.create = async (req, res) => {
   const {title, description, summary, detail, neededRole} = req.body;
   const image = req.file;
 
-  if(!title || !description){
-    return res.status(400).json({error: true, message: 'title or description need to be filled'});
-  }
   const post = new Post();
   post.title = title;
   post.description = description;
@@ -72,10 +69,6 @@ exports.create = async (req, res) => {
   post.image = null;
 
   if(image){
-    if(!(image.mimetype === 'image/png' || image.mimetype === 'image/jpeg')){
-      return res.status(400).json({error: true, message: 'unsupported format'});
-    }
-
     const filename = bucketConfig.postPath + generateRandomFilename(image.originalname);
     const fileUpload = bucket.file(filename);
     await fileUpload.save(image.buffer, {
