@@ -25,8 +25,7 @@ router.post('/role',
   authController.setRole);
 
 router.get('/', authMiddleware.authorize([], enumPermissions.listAllUsers), userController.getAllUsers)
-router.get('/:id(\\d+)', authMiddleware.authorize([], enumPermissions.readUser), userController.getUser);
-router.get('/me', userController.getMine);
+router.get('/:id', authMiddleware.authorize([], enumPermissions.readUser), userController.getUser);
 router.post('/logout', userController.logout);
 
 router.post('/profile-pic', 
