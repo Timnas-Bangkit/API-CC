@@ -23,6 +23,9 @@ const UserProfile = sequelize.define('user_profile', {
   },
   socialLinks: {
     type: DataTypes.STRING
+  },
+  companyLocation: {
+    type: DataTypes.STRING,
   }
 });
 
@@ -33,6 +36,7 @@ UserProfile.prototype.responseData = async function(){
     name: this.name,
     phone: this.phone,
     bio: this.bio,
+    companyLocation: this.companyLocation,
     socialLinks: JSON.parse(this.socialLinks),
     updatedAt: this.updatedAt,
   }

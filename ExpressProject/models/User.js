@@ -59,19 +59,18 @@ User.prototype.response = function(){
   }
 }
 
-User.prototype.responseData = async function(){
+User.prototype.profileResponse = async function(){
   return {
     id: this.id,
     username: this.username,
-    profile: await (await this.getUser_profile()).responseData(),
-    posts: await this.getPosts(),
+    profile: await (await this.getProfile()).responseData(),
   }
 }
 User.prototype.data = async function(){
   return {
     id: this.id,
     username: this.username,
-    profile: await (await this.getUser_profile()).responseData(),
+    profile: await (await this.getProfile()).responseData(),
   }
 }
 

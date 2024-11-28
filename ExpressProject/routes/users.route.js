@@ -55,6 +55,7 @@ router.put('/', authMiddleware.authorize(['owner'], enumPermissions.updateProfil
   body("phone").isMobilePhone('id-ID').withMessage("`phone` is in phone format (ID localization)").optional(),
   body("bio").isString().withMessage("`bio` is in string format").optional(),
   body("socialLinks").isObject().withMessage("`socialLinks` is in object format").optional(),
+  body("companyLocation").isString().withMessage("`companyLocation` is in string format").optional(),
   validationMiddleware.validate,
   userController.updateProfile);
 

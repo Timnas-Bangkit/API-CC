@@ -55,38 +55,32 @@ exports.getAllUsers = async (req, res) => {
 }
 
 exports.updateProfile = async (req, res) => {
-  const profile = await req.user.getUser_profile();
+  const profile = await req.user.getProfile();
   profile.name = req.body.name;
   profile.phone = req.body.phone;
   profile.bio = req.body.bio;
   profile.socialLinks = JSON.stringify(req.body.socialLinks);
+  profile.companyLocation = req.body.companyLocation;
 
   await profile.save();
 
   res.status(200).json({
     erorr: false, 
     message: 'Success updating',
-    data: await req.user.responseData(),
+    data: await req.user.profileResponse(),
   })
 }
 
 exports.getMine = async (req, res) => {
-  const user = await User.findByPk(req.user.id, ({
-    include: [
-      {model: UserProfile, attributes: {exclude: ['userId']}},
-    ],
-    attributes: {exclude: ['password', 'token']},
-  }));
-
   return res.status(200).json({
     error: false, 
-    data: user,
+    data: await req.user.profileResponse(),
   });
 }
 
 exports.updateProfilePic = async (req, res) => {
   const file = req.file;
-  const profile = await req.user.getUser_profile();
+  const profile = await req.user.getProfile();
 
   let filename = '';
   const arr = profile.profilePic.split('/');
@@ -120,7 +114,7 @@ exports.updateProfilePic = async (req, res) => {
 }
 
 exports.deleteProfilePic = async (req, res) => {
-  const profile = await req.user.getUser_profile();
+  const profile = await req.user.getProfile();
   const arr = profile.profilePic.split('/');
   if(arr[arr.length - 1] == 'default.jpg'){
     return res.status(403).json({

@@ -4,7 +4,7 @@ const Post = require('./Post')
 const PostLike = require('./PostLike')
 const Application = require('./Application');
 
-User.hasOne(UserProfile);
+User.hasOne(UserProfile, {as: 'profile'});
 User.hasMany(Post);
 Post.belongsTo(User);
 
