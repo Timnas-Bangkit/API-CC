@@ -16,6 +16,7 @@ const upload = multer({
 router.use(authMiddleware.verify);
 
 router.get('/', authMiddleware.authorize(['owner', 'techWorker'], enumPermissions.listAllJobs), postController.getAll);
+router.get('/me', authMiddleware.authorize(['owner', 'techWorker'], enumPermissions.readJob), postController.getMine);
 router.get('/:id', authMiddleware.authorize(['owner', 'techWorker'], enumPermissions.readJob), postController.get);
 
 router.post('/', authMiddleware.authorize(['owner'], enumPermissions.createJob), 

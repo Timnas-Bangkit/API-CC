@@ -70,6 +70,20 @@ exports.updateProfile = async (req, res) => {
   })
 }
 
+exports.getMine = async (req, res) => {
+  const user = await User.findByPk(req.user.id, ({
+    include: [
+      {model: UserProfile, attributes: {exclude: ['userId']}},
+    ],
+    attributes: {exclude: ['password', 'token']},
+  }));
+
+  return res.status(200).json({
+    error: false, 
+    data: user,
+  });
+}
+
 exports.updateProfilePic = async (req, res) => {
   const file = req.file;
   const profile = await req.user.getUser_profile();
