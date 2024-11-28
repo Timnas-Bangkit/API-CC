@@ -63,14 +63,14 @@ User.prototype.profileResponse = async function(){
   return {
     id: this.id,
     username: this.username,
-    profile: await (await this.getProfile()).responseData(),
+    profile: await (await this.getUser_profile()).responseData(),
   }
 }
 User.prototype.data = async function(){
   return {
     id: this.id,
     username: this.username,
-    profile: await (await this.getProfile()).responseData(),
+    profile: await (await this.getUser_profile()).responseData(),
   }
 }
 

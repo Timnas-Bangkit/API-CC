@@ -14,7 +14,7 @@ exports.register = async (req, res) => {
     const newUser = await User.create({ username: username, email: email, password: hashedPassword });
     const profile = await UserProfile.create({ name: username });
 
-    newUser.setProfile(profile);
+    newUser.setUser_profile(profile);
     logger.info(`[WEB] /register user registered: ${username} ${email}`);
     res.status(200).json({ error: false, message: 'User registered successfully' });
   } catch (error) {

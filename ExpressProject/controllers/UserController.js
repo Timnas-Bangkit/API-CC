@@ -55,7 +55,7 @@ exports.getAllUsers = async (req, res) => {
 }
 
 exports.updateProfile = async (req, res) => {
-  const profile = await req.user.getProfile();
+  const profile = await req.user.getUser_profile();
   profile.name = req.body.name;
   profile.phone = req.body.phone;
   profile.bio = req.body.bio;
@@ -80,7 +80,6 @@ exports.getMine = async (req, res) => {
 
 exports.updateProfilePic = async (req, res) => {
   const file = req.file;
-  const profile = await req.user.getProfile();
 
   let filename = '';
   const arr = profile.profilePic.split('/');
@@ -114,7 +113,7 @@ exports.updateProfilePic = async (req, res) => {
 }
 
 exports.deleteProfilePic = async (req, res) => {
-  const profile = await req.user.getProfile();
+  const profile = await req.user.getUser_profile();
   const arr = profile.profilePic.split('/');
   if(arr[arr.length - 1] == 'default.jpg'){
     return res.status(403).json({
