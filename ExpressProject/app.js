@@ -15,7 +15,7 @@ const dbConfig = require('./config/db.config');
 
 const appInit = async () => {
   return new Promise((resolve, reject) => {
-  sequelize.sync({ force: dbConfig.forceDrop, down: async (interface) => {
+  sequelize.sync({ alter: dbConfig.forceDrop, down: async (interface) => {
     interface.dropTable('application');
     interface.dropTable('post_likes');
     interface.dropTable('user_profiles');
