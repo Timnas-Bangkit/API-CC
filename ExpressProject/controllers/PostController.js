@@ -42,6 +42,21 @@ exports.getAll = async (req, res) => {
   });
 }
 
+exports.getMine = async (req, res) => {
+  const posts = await req.user.getPosts({include: [
+      {model: User, attributes: ['id'], 
+        include: [{model: UserProfile, attributes: ['name', 'profilePic']}]},
+    ], attributes: ['id', 'title', 'description', 'image', 'likeCount', 'updatedAt', 'createdAt']});
+  for(const post of posts){
+    post.setDataValue('isLiked', await post.hasUserLike(req.user));
+  }
+  return res.status(200).json({
+    error: false,
+    data: posts,
+  })
+}
+
+
 exports.get = async (req, res) => {
   const post = await getNarrowData(req.user, req.params.id);
   if(post == null){
