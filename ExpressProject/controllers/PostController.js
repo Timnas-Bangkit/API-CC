@@ -3,7 +3,6 @@ const { generateRandomFilename } = require('../helper/generator');
 const multer = require('multer');
 const { bucket, bucketConfig } = require('../config/bucket.config')
 const { logger } = require('../utils/logger');
-const { post } = require('../app');
 
 const getNarrowData = async (user, id=null) => {
   if(id == null){

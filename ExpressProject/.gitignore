@@ -128,3 +128,4 @@ ehthumbs.db
 
 .env.example.*
 key.json
+seeder.js

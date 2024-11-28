@@ -3,14 +3,14 @@ const { sequelize, Sequelize } = require('../config/sequelize.config');
 const User = require('./User');
 const Post = require('./Post');
 
-// junction model
-const PostLike = sequelize.define('post_like', {
+// Application == Apply to a Post (idea)
+const Application = sequelize.define('application', {
   userId: {
     type: DataTypes.INTEGER,
     references: {
       model: User,
-      key: 'id'
-    },
+      key: 'id',
+    }
   },
 
   postId: {
@@ -18,8 +18,13 @@ const PostLike = sequelize.define('post_like', {
     references: {
       model: Post,
       key: 'id',
-    },
+    }
   },
+
+  status: {
+    type: DataTypes.STRING,
+    defaultValue: 'applied',
+  }
 });
 
-module.exports = PostLike;
+module.exports = Application;

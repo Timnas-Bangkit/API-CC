@@ -364,3 +364,4 @@ FodyWeavers.xsd
 
 .env
 /ExpressProject/.env.prod
+session.vim

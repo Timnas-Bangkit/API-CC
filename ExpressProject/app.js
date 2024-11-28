@@ -5,6 +5,7 @@ var cookieParser = require('cookie-parser');
 var indexRouter = require('./routes/index.route');
 var usersRouter = require('./routes/users.route');
 var postsRouter = require('./routes/posts.route');
+var appliedJobsRouter = require('./routes/applied_jobs.route');
 
 const debugMiddleware = require('./middleware/debug.middleware');
 
@@ -14,7 +15,13 @@ const dbConfig = require('./config/db.config');
 
 const appInit = async () => {
   return new Promise((resolve, reject) => {
-  sequelize.sync({ force: dbConfig.forceDrop })
+  sequelize.sync({ force: dbConfig.forceDrop, down: async (interface) => {
+    interface.dropTable('application');
+    interface.dropTable('post_likes');
+    interface.dropTable('user_profiles');
+    interface.dropTable('posts');
+    interface.dropTable('users');
+  }})
     .then(() => {
       logger.info('[DB] Database sync complete.');
 
@@ -34,13 +41,12 @@ const appInit = async () => {
       app.use('/api/', indexRouter);
       app.use('/api/users', usersRouter);
       app.use('/api/posts', postsRouter);
+      app.use('/api/', appliedJobsRouter);
 
       // catch 404 and forward to error handler
       app.use(function(req, res, next) {
         next(createError(404));
       });
-
-      // error handler
       app.use(function(err, req, res, next) {
         // set locals, only providing error in development
         res.locals.message = err.message;

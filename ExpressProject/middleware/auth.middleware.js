@@ -41,7 +41,6 @@ exports.authorize = (roles=[], permission=null) => {
     const user = req.user;
     if(roles.length > 0){
       isAuthorized = roles.includes(user.role);
-
       if(permission && isAuthorized){
         const permissions = user.getPermissions();
         if(permissions){
@@ -54,7 +53,6 @@ exports.authorize = (roles=[], permission=null) => {
         const permissions = user.getPermissions();
         if(permissions){
           isAuthorized = permissions.includes(permission);
-          console.log(isAuthorized);
         }
       }
     }

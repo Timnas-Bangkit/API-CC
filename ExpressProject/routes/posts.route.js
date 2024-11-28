@@ -34,4 +34,4 @@ router.delete('/:id', authMiddleware.authorize(['owner'], enumPermissions.delete
 router.post('/:id/like', authMiddleware.authorize(['owner', 'techWorker'], enumPermissions.interractAllJobs), postController.setLike);
 router.delete('/:id/like', authMiddleware.authorize(['owner', 'techWorker'], enumPermissions.interractAllJobs), postController.delLike);
 
-module.exports = router;
+module.exports = router
