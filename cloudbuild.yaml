@@ -37,7 +37,7 @@ steps:
     args:
       - 'run'
       - 'services'
-      - '--update-traffic'
+      - 'update-traffic'
       - 'run-findup-$_CONTEXT'
       - '--to-latest'
       - '--region'
