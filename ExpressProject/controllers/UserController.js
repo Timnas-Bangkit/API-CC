@@ -209,7 +209,7 @@ exports.uploadCv = async (req, res) => {
 
       if(responses[0]){
         const score = responses[0].data.predictions[0];
-        responseData.score = score;
+        responseData.score = score[0];
       }
 
       //TODO save profile
@@ -225,6 +225,7 @@ exports.uploadCv = async (req, res) => {
         linkedin: personalInfo.LinkedIn
       });
       await profile.save();
+
       return res.status(200).json({
         error: false,
         data: responseData,
