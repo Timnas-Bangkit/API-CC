@@ -23,7 +23,7 @@ const roles = [
   {
     name: 'admin',
     permissions: [
-      'manage_all'
+      enumPermissions.readUser,
     ]
   },
   {

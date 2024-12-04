@@ -7,7 +7,7 @@ const multer = require('multer');
 const { generateRandomFilename } = require('../helper/generator');
 const { cvparsing } = require('../config/pubsub.config');
 const axios = require('axios');
-const PNF = require('google-libphonenumber').PhoneNumberFormat;
+const phoneUtil = require('google-libphonenumber').PhoneNumberUtil.getInstance();
 
 exports.logout = async (req, res) => {
     const ret = await req.user.save();
@@ -214,8 +214,17 @@ exports.uploadCv = async (req, res) => {
 
       //TODO save profile
       const profile = await req.user.getUser_profile();
-
-      console.log(responseData.cv);
+      const cvName = Object.keys(responseData.cv)[0];
+      const personalInfo = responseData.cv[cvName]['Personal Info'];
+      console.log(cvName);
+      console.log(personalInfo);
+      profile.name = cvName;
+      profile.phone = '62' + phoneUtil.parseAndKeepRawInput(personalInfo['Phone Number'], 'ID').getNationalNumber();
+      profile.socialLinks = JSON.stringify({
+        github: personalInfo.Github,
+        linkedin: personalInfo.LinkedIn
+      });
+      await profile.save();
       return res.status(200).json({
         error: false,
         data: responseData,
