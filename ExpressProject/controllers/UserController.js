@@ -1,5 +1,5 @@
 const express = require('express');
-const {User, Post} = require('../models');
+const {User, Post, CV} = require('../models');
 const { logger } = require('../utils/logger');
 const { bucket, bucketConfig, privateBucket, privateBucketConfig } = require('../config/bucket.config')
 const UserProfile = require('../models/UserProfile');
@@ -7,6 +7,7 @@ const multer = require('multer');
 const { generateRandomFilename } = require('../helper/generator');
 const { cvparsing } = require('../config/pubsub.config');
 const axios = require('axios');
+const { Skills, WorkExp, Certs } = require('../models/CV');
 const phoneUtil = require('google-libphonenumber').PhoneNumberUtil.getInstance();
 
 exports.logout = async (req, res) => {
@@ -212,12 +213,12 @@ exports.uploadCv = async (req, res) => {
         responseData.score = score[0];
       }
 
-      //TODO save profile
       const profile = await req.user.getUser_profile();
       const cvName = Object.keys(responseData.cv)[0];
       const personalInfo = responseData.cv[cvName]['Personal Info'];
-      console.log(cvName);
-      console.log(personalInfo);
+      const skills = responseData.cv[cvName]['Skills'];
+      const workExps = responseData.cv[cvName]['Work Experience'];
+      const certs = responseData.cv[cvName]['Certification'];
       profile.name = cvName;
       profile.phone = '62' + phoneUtil.parseAndKeepRawInput(personalInfo['Phone Number'], 'ID').getNationalNumber();
       profile.socialLinks = JSON.stringify({
@@ -225,6 +226,34 @@ exports.uploadCv = async (req, res) => {
         linkedin: personalInfo.LinkedIn
       });
       await profile.save();
+
+      let cv = await req.user.getCv();
+      if(cv){
+        cv.purge();
+      }else{
+        cv = await req.user.createCv();
+      }
+      cv.score = responseData.score;
+      skills.forEach(async (e) => {
+        console.log(e);
+        await cv.createSkill({skill: e});
+      });
+      workExps.forEach(async e => {
+        await cv.createWorkExp({
+          companyName: e['Company Name'],
+          startDate: e['Start Date'],
+          endDate: e['End Date'],
+          position: e['Position'],
+          description: e['Description'].toString(),
+        });
+      });
+      certs.forEach(async e => {
+        console.log(e);
+        await cv.createCert({
+          certification: e,
+        });
+      });
+      await cv.save();
 
       return res.status(200).json({
         error: false,
@@ -242,5 +271,43 @@ exports.uploadCv = async (req, res) => {
       error: true, 
       message: 'pub/sub error!',
     })
+  });
+}
+
+exports.getCv = async (req, res) => {
+  const userid = req.params.id;
+  const user = await User.findByPk(userid);
+  if(!user){
+    return res.status(404).json({
+      error: true,
+      message: '`id` not found',
+    })
+  }
+
+  const ret = {
+    id: user.id,
+    username: user.username,
+    email: user.email,
+    role: user.role,
+    cv: await (await user.getCv()).response(),
+  }
+
+  return res.status(200).json({
+    error: false,
+    data: ret,
+  });
+};
+
+exports.getMyCv = async (req, res) => {
+  const ret = {
+    id: req.user.id,
+    username: req.user.username,
+    email: req.user.email,
+    role: req.user.role,
+    cv: await (await req.user.getCv()).response(),
+  }
+  return res.status(200).json({
+    error: false,
+    data: ret,
   });
 }

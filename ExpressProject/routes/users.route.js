@@ -78,5 +78,11 @@ router.post('/cv',
   }),
   validationMiddleware.validate,
   userController.uploadCv);
+router.get('/cv/me',
+  authMiddleware.authorize([], enumPermissions.readCV),
+  userController.getMyCv);
+router.get('/cv/:id(\\d+)',
+  authMiddleware.authorize([], enumPermissions.readCV),
+  userController.getCv);
 
 module.exports = router;

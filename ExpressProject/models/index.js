@@ -3,6 +3,7 @@ const UserProfile = require('./UserProfile')
 const Post = require('./Post')
 const PostLike = require('./PostLike')
 const Application = require('./Application');
+const { CV } = require('./CV');
 
 User.hasOne(UserProfile);
 User.hasMany(Post);
@@ -18,5 +19,8 @@ Application.belongsTo(User, {as: 'user', foreignKey: 'userId'});
 Post.hasMany(Application);
 User.hasMany(Application);
 
+User.hasOne(CV, {
+  foreignKey: 'userId',
+});
 
-module.exports = {User, UserProfile, Post, Application};
+module.exports = {User, UserProfile, Post, Application, CV};
