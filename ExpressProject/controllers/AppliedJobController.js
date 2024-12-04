@@ -107,3 +107,52 @@ exports.listMyAppliedJobs = async (req, res) => {
     data: jobs,
   });
 };
+
+exports.listCandidates = async (req, res) => {
+  const post = Post.findByPk(req.params.id, {
+    include: [
+      {model: Application, include: [
+        {model: User, include: [
+          {model: UserProfile, attributes: ['name', 'profilePic']},
+        ], attributes: ['id']}
+      ], attributes: ['status']}
+    ], 
+    attributes: ['id', 'title', 'description', 'image'],
+  });
+
+  return res.status(200).json({
+    error: false,
+    data: post,
+  })
+}
+
+exports.updateCandidateStatus = async (req, res) => {
+  const { status } = req.body;
+  const { id, userid } = req.params;
+
+  const post = Post.findByPk(id, {
+    include: [
+      {model: Application, where: {userId: userid}, include: [
+        {model: User, include: [
+          {model: UserProfile, attributes: ['name', 'profilePic']},
+        ], attributes: ['id']}
+      ], attributes: ['status']}
+    ], 
+    attributes: ['id', 'title', 'description', 'image'],
+  });
+
+  if(!post){
+    return res.status(404).json({
+      error: true,
+      message: 'id not found',
+    })
+  }
+
+  post.application.status = status;
+  await post.save();
+
+  return res.status(200).json({
+    error: false,
+    data: post,
+  })
+}

@@ -16,6 +16,7 @@ const enumPermissions = {
   listAppliedJob: 'list_applied_job',
   listAllUsers: 'list_all_users',
   readUser: 'read_user',
+  createCV: 'create_cv',
 }
 
 const roles = [
@@ -54,6 +55,8 @@ const roles = [
     permissions: [
       enumPermissions.listAllUsers,
       enumPermissions.readUser,
+
+      enumPermissions.createCV,
 
       'read_job',
 

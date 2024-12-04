@@ -63,6 +63,8 @@ User.prototype.profileResponse = async function(){
   return {
     id: this.id,
     username: this.username,
+    email: this.email,
+    role: this.role,
     profile: await (await this.getUser_profile()).responseData(),
   }
 }

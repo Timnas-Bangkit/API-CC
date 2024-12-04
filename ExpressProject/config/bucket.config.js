@@ -10,4 +10,15 @@ const bucketConfig = {
 const storage = new Storage({ keyFilename: bucketConfig.key });
 const bucket = storage.bucket(bucketConfig.name);
 
-module.exports = { bucket, bucketConfig };
+const privateBucketConfig= {
+  name: process.env.PRIVATE_BUCKET || null,
+  key: process.env.BUCKET_PRIVATE_SERVICEACCOUT_KEY || null,
+}
+if(privateBucketConfig.name){
+  privateBucketConfig.cvPath = (process.env.CONTEXT || 'dev') + '/CVs/'
+}
+
+const storage2 = new Storage({keyFilename: privateBucketConfig.key});
+const privateBucket = storage2.bucket(privateBucketConfig.name);
+
+module.exports = { bucket, bucketConfig, privateBucket, privateBucketConfig};

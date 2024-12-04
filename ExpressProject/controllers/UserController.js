@@ -1,10 +1,13 @@
 const express = require('express');
 const {User, Post} = require('../models');
 const { logger } = require('../utils/logger');
-const { bucket, bucketConfig } = require('../config/bucket.config')
+const { bucket, bucketConfig, privateBucket, privateBucketConfig } = require('../config/bucket.config')
 const UserProfile = require('../models/UserProfile');
 const multer = require('multer');
 const { generateRandomFilename } = require('../helper/generator');
+const { cvparsing } = require('../config/pubsub.config');
+const axios = require('axios');
+const PNF = require('google-libphonenumber').PhoneNumberFormat;
 
 exports.logout = async (req, res) => {
     const ret = await req.user.save();
@@ -25,7 +28,7 @@ exports.get = async (req, res) => {
 }
 
 exports.getUser = async (req, res) => {
-  const user = await User.findByPk(req.params.id, {attributes: {exclude: ['password', 'token', 'updatedAt']},
+  const user = await User.findByPk(req.params.id, {attributes: {exclude: ['password', 'token', 'updatedAt', 'createdAt']},
     include: [
       {model: UserProfile, attributes: {exclude: ['id', 'userId', 'createdAt']}},
       {model: Post, attributes: {exclude: 'userId'}},
@@ -135,5 +138,99 @@ exports.deleteProfilePic = async (req, res) => {
       error: true,
       message: 'failed to remove picture'
     });
+  });
+}
+
+exports.uploadCv = async (req, res) => {
+  const cv = req.file;
+  const filename = privateBucketConfig.cvPath + generateRandomFilename(cv.originalname);
+  const fileupload = privateBucket.file(filename);
+  await fileupload.save(cv.buffer, {
+    contentType: cv.mimetype
+  }).then(() => {
+    logger.info(`[WEB] object saved`);
+  }).catch((err) => {
+    console.log(err);
+    return res.status(500);
+  });
+
+  const sub = cvparsing.pubsub
+    .topic(cvparsing.pubsubTopic)
+    .subscription(cvparsing.pubsubSubs, {ackDeadline: 20});
+
+  const timeout = setTimeout(() => {
+    sub.close();
+    return res.status(500).json({
+      error: true,
+      message: 'timeout!',
+    });
+  }, 20000);
+
+  sub.on('message', async (message) => {
+    const data = JSON.parse(message.data.toString());
+    const filename_json = filename.replace('.pdf', '.json')
+    if(data.filename == filename_json){
+      clearTimeout(timeout);
+      message.ack();
+      sub.close();
+      
+      let jsonObject = {};
+      {
+        const download = privateBucket.file(filename_json);
+        const chunks = []
+        const buffer = await new Promise((resolve, reject) => { download.createReadStream()
+            .on('data', chunk => chunks.push(chunk))
+            .on('end', () => resolve(Buffer.concat(chunks)))
+            .on('error', () => reject(null))
+        });
+        jsonObject = JSON.parse(buffer.toString('utf-8'));
+      }
+
+      //TODO request to model
+      const request1 = axios.post(process.env.MODEL1_ENDPOINT, {
+        instances: [ {
+          input_ids: jsonObject.input_ids[0],
+          attention_mask: jsonObject.attention_mask[0],
+          numerical_features: jsonObject.numerical_features[0],
+        }
+        ],
+      }, {
+        headers: {
+          'Authorization': `Bearer ${process.env.VERTEX_AI_TOKEN || undefined}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const responses = await Promise.all([request1]);
+
+      const responseData = {
+        cv: jsonObject.cv,
+      }
+
+      if(responses[0]){
+        const score = responses[0].data.predictions[0];
+        responseData.score = score;
+      }
+
+      //TODO save profile
+      const profile = await req.user.getUser_profile();
+
+      console.log(responseData.cv);
+      return res.status(200).json({
+        error: false,
+        data: responseData,
+      });
+    }else{
+      message.nack();
+    }
+  });
+
+  sub.on('error', () => {
+    clearTimeout(timeout);
+    sub.close();
+    return res.status(500).json({
+      error: true, 
+      message: 'pub/sub error!',
+    })
   });
 }

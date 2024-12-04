@@ -4,7 +4,9 @@ var router = express.Router();
 const authMiddleware = require('../middleware/auth.middleware');
 const validationMiddleware = require('../middleware/validation.middleware');
 const { enumPermissions } = require('../config/roles.config');
-const { listAppliedJobs, listMyAppliedJobs, apply, withdraw } = require('../controllers/AppliedJobController');
+const { listAppliedJobs, listMyAppliedJobs, apply, withdraw, listCandidates, updateCandidateStatus } = require('../controllers/AppliedJobController');
+const { body } = require('express-validator');
+const { applicationStatus } = require('../config/status.config');
 
 router.use(authMiddleware.verify);
 
@@ -21,5 +23,15 @@ router.post('/posts/:id/apply',
 router.post('/posts/:id/withdraw',
   authMiddleware.authorize(['techWorker'], enumPermissions.deleteAppliedJob),
   withdraw);
+
+router.get('/posts/:id(\\d+)/candidates', 
+  authMiddleware.authorize(['owner']),
+  listCandidates);
+router.post('/posts/:id(\\d+)/candidates/:userid(\\d+)',
+  authMiddleware.authorize(['owner']),
+  body("status").exists().withMessage('`status` is required'),
+  body("status").isIn(applicationStatus),
+  validationMiddleware.validate,
+  updateCandidateStatus);
 
 module.exports = router;

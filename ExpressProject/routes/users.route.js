@@ -10,6 +10,7 @@ const userController = require('../controllers/UserController');
 const validationMiddleware = require('../middleware/validation.middleware');
 const upload = multer({
   storage: multer.memoryStorage(),
+  limits: 50 * 1024 * 1024,
 });
 
 router.use(authMiddleware.verify);
@@ -58,5 +59,24 @@ router.put('/', authMiddleware.authorize(['owner'], enumPermissions.updateProfil
   body("companyLocation").isString().withMessage("`companyLocation` is in string format").optional(),
   validationMiddleware.validate,
   userController.updateProfile);
+
+router.post('/cv', 
+  authMiddleware.authorize(['techWorker'], enumPermissions.createCV),
+  upload.single('cv'),
+  body("cv").custom((value, {req}) => {
+    const file = req.file;
+    if(!file){
+      throw new Error("`cv` is required");
+    }
+    if(!(file.mimetype === 'application/pdf')){
+      throw new Error("`cv` format should be document/pdf");
+    }
+    if(file.buffer.length > 10 * 1024 * 1024){
+      throw new Error("`cv` size must be lower than 10MB");
+    }
+    return true;
+  }),
+  validationMiddleware.validate,
+  userController.uploadCv);
 
 module.exports = router;
