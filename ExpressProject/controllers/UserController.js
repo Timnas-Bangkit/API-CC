@@ -8,6 +8,7 @@ const { generateRandomFilename } = require('../helper/generator');
 const { cvparsing } = require('../config/pubsub.config');
 const axios = require('axios');
 const { Skills, WorkExp, Certs } = require('../models/CV');
+const { getCvScore } = require('../config/vertex.config');
 const phoneUtil = require('google-libphonenumber').PhoneNumberUtil.getInstance();
 
 exports.logout = async (req, res) => {
@@ -157,7 +158,7 @@ exports.uploadCv = async (req, res) => {
 
   const sub = cvparsing.pubsub
     .topic(cvparsing.pubsubTopic)
-    .subscription(cvparsing.pubsubSubs, {ackDeadline: 20});
+    .subscription(cvparsing.pubsubSubs, {ackDeadline: 10});
 
   const timeout = setTimeout(() => {
     sub.close();
@@ -187,45 +188,50 @@ exports.uploadCv = async (req, res) => {
         jsonObject = JSON.parse(buffer.toString('utf-8'));
       }
 
-      //TODO request to model
-      const request1 = axios.post(process.env.MODEL1_ENDPOINT, {
-        instances: [ {
+      logger.info(`[WEB] request for inference`);
+      const request1 = getCvScore({
           input_ids: jsonObject.input_ids[0],
           attention_mask: jsonObject.attention_mask[0],
           numerical_features: jsonObject.numerical_features[0],
-        }
-        ],
-      }, {
-        headers: {
-          'Authorization': `Bearer ${process.env.VERTEX_AI_TOKEN || undefined}`,
-          'Content-Type': 'application/json',
-        },
       });
 
-      const responses = await Promise.all([request1]);
+      const responses = await Promise.all([request1]).catch((err) => {
+        logger.error(`[VERTEX] failed to inference. err: ${err}`);
+        return null;
+      });
+
+      if(!responses){
+        return res.status(500).json({
+          error: true,
+          message: 'failed to do inference',
+        });
+      }
 
       const responseData = {
         cv: jsonObject.cv,
       }
 
       if(responses[0]){
-        const score = responses[0].data.predictions[0];
-        responseData.score = score[0];
+        const score = responses[0][0].predictions[0].listValue.values[0].numberValue;
+        responseData.score = score;
       }
 
-      const profile = await req.user.getUser_profile();
       const cvName = Object.keys(responseData.cv)[0];
       const personalInfo = responseData.cv[cvName]['Personal Info'];
       const skills = responseData.cv[cvName]['Skills'];
       const workExps = responseData.cv[cvName]['Work Experience'];
       const certs = responseData.cv[cvName]['Certification'];
-      profile.name = cvName;
-      profile.phone = '62' + phoneUtil.parseAndKeepRawInput(personalInfo['Phone Number'], 'ID').getNationalNumber();
-      profile.socialLinks = JSON.stringify({
-        github: personalInfo.Github,
-        linkedin: personalInfo.LinkedIn
-      });
-      await profile.save();
+
+      const profile = await req.user.getUser_profile();
+      if(profile){
+        profile.name = cvName;
+        profile.phone = '62' + phoneUtil.parseAndKeepRawInput(personalInfo['Phone Number'], 'ID').getNationalNumber();
+        profile.socialLinks = JSON.stringify({
+          github: personalInfo.Github,
+          linkedin: personalInfo.LinkedIn
+        });
+        await profile.save();
+      }
 
       let cv = await req.user.getCv();
       if(cv){
@@ -235,7 +241,6 @@ exports.uploadCv = async (req, res) => {
       }
       cv.score = responseData.score;
       skills.forEach(async (e) => {
-        console.log(e);
         await cv.createSkill({skill: e});
       });
       workExps.forEach(async e => {
@@ -248,7 +253,6 @@ exports.uploadCv = async (req, res) => {
         });
       });
       certs.forEach(async e => {
-        console.log(e);
         await cv.createCert({
           certification: e,
         });

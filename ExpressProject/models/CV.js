@@ -122,24 +122,42 @@ CV.hasMany(Certs, {
 
 
 CV.prototype.response = async function (){
-  const skills = await this.getSkill();
-  const certs = await this.getCert();
-  const workExps = await this.getWorkExp();
-
-  const arrSkill = []
-  skills.forEach(element => {
-    arrSkill.push(element.skill);
+  const skills = Skills.findAll({
+    where: {cvId: this.id},
+    attributes: ['skill'],
   });
-  const arrCerts = []
-  certs.forEach(element => {
-    arrCerts.push(element.certification);
+  const certs = Certs.findAll({
+    where: {cvId: this.id},
+    attributes: ['certification'],
+  });
+  const workExps = WorkExp.findAll({
+    where: {cvId: this.id},
+    attributes: {exclude: ['id', 'cvId']},
+  });
+
+  const ret = await Promise.all([skills, certs, workExps]).catch((err) => {
+    logger.error('[CV] failed to retrieve data');
+    return null;
+  });
+
+  if(!ret){
+    return null
+  }
+
+  const arr1 = []
+  ret[0].forEach((e) => {
+    arr1.push(e.skill);
+  });
+  const arr2 = []
+  ret[1].forEach((e) => {
+    arr2.push(e.certification);
   });
 
   return {
     score: this.score,
-    skills: arrSkill,
-    workExperiences: workExps,
-    certifications: arrCerts,
+    skills: arr1,
+    workExperiences: ret[2],
+    certifications: arr2,
   };
 }
 

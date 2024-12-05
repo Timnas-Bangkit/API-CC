@@ -6,6 +6,7 @@
     "start": "node ./bin/www"
   },
   "dependencies": {
+    "@google-cloud/aiplatform": "^3.34.0",
     "@google-cloud/pubsub": "^4.9.0",
     "@google-cloud/storage": "^7.14.0",
     "axios": "^1.7.8",
