@@ -25,6 +25,9 @@ This is the backend API service for the FindUp application, a platform designed 
   - Cloud Run
   - Cloud Storage
   - Cloud SQL
+  - Cloud Run Function
+  - Pub/Sub
+  - Vertex AI
  
 ## Setup & Installation
 1. Clone repository
