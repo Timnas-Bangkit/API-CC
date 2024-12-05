@@ -12,6 +12,8 @@ This is the backend API service for the FindUp application, a platform designed 
 - [x] Several user actions
 - [x] Posts
 - [ ] CV detection
+  - [x] Scoring
+  - [ ] etc.
 - [ ] etc.
 
 ## Technologies Used
