@@ -90,7 +90,7 @@ const main = (() => {
       debug('Listening on ' + bind);
     }
   }).catch((err)=>{
-    logger.error('[App] Retrying in 5s');
+    logger.error('[App] Retrying in 5s. err: ' + err);
     setTimeout(main, 5000);
   });
 });

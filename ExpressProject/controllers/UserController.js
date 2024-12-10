@@ -9,6 +9,7 @@ const { cvparsing } = require('../config/pubsub.config');
 const axios = require('axios');
 const { Skills, WorkExp, Certs } = require('../models/CV');
 const { getCvScore } = require('../config/vertex.config');
+const { getScoringModel } = require('../helper/model');
 const phoneUtil = require('google-libphonenumber').PhoneNumberUtil.getInstance();
 
 exports.logout = async (req, res) => {
@@ -187,16 +188,22 @@ exports.uploadCv = async (req, res) => {
         });
         jsonObject = JSON.parse(buffer.toString('utf-8'));
       }
+      //
+      //logger.info(`[WEB] request for inference`);
+      //const request1 = getCvScore({
+      //    input_ids: jsonObject.input_ids[0],
+      //    attention_mask: jsonObject.attention_mask[0],
+      //    numerical_features: jsonObject.numerical_features[0],
+      //});
 
-      logger.info(`[WEB] request for inference`);
-      const request1 = getCvScore({
+      const request1 = getScoringModel().predict({
           input_ids: jsonObject.input_ids[0],
           attention_mask: jsonObject.attention_mask[0],
           numerical_features: jsonObject.numerical_features[0],
-      });
+      }).data();
 
       const responses = await Promise.all([request1]).catch((err) => {
-        logger.error(`[VERTEX] failed to inference. err: ${err}`);
+        logger.error(`[AI] failed to inference. err: ${err}`);
         return null;
       });
 

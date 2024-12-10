@@ -12,6 +12,7 @@ const debugMiddleware = require('./middleware/debug.middleware');
 const { logger } = require('./utils/logger');
 const { sequelize } = require('./config/sequelize.config');
 const dbConfig = require('./config/db.config');
+const { loadScoringModel, getScoringModel } = require('./helper/model');
 
 const appInit = async () => {
   return new Promise((resolve, reject) => {
@@ -22,10 +23,17 @@ const appInit = async () => {
     interface.dropTable('posts');
     interface.dropTable('users');
   }})
-    .then(() => {
+    .then(async () => {
       logger.info('[DB] Database sync complete.');
-
       var app = new express();
+
+      await loadScoringModel();
+      if(getScoringModel()){
+        logger.info('[AI] success loading ai model');
+      }else{
+        logger.info('[AI] failed to load ai model');
+        reject('failed to load ai model');
+      }
 
       // view engine setup
       app.set('views', path.join(__dirname, 'views'));
