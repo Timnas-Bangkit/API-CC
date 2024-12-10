@@ -196,33 +196,51 @@ exports.uploadCv = async (req, res) => {
       //    numerical_features: jsonObject.numerical_features[0],
       //});
 
-      const request1 = getScoringModel().predict({
+      const responseData = {
+        cv: jsonObject.cv,
+      }
+
+      const model = getScoringModel();
+      let 
+      try{
+        const ret = model.predict({
           input_ids: jsonObject.input_ids[0],
           attention_mask: jsonObject.attention_mask[0],
           numerical_features: jsonObject.numerical_features[0],
-      }).data();
-
-      const responses = await Promise.all([request1]).catch((err) => {
-        logger.error(`[AI] failed to inference. err: ${err}`);
-        return null;
-      });
-
-      if(!responses){
+        }).data();
+        const score = ret[0].predictions[0].listValue.values[0].numberValue;
+        responseData.score = score;
+      }catch(err){
+        logger.error('[AI] failed to do inference');
         return res.status(500).json({
           error: true,
           message: 'failed to do inference',
         });
       }
+      const request1 = await getScoringModel().predict({
+          input_ids: jsonObject.input_ids[0],
+          attention_mask: jsonObject.attention_mask[0],
+          numerical_features: jsonObject.numerical_features[0],
+      }).data();
 
-      const responseData = {
-        cv: jsonObject.cv,
-      }
+      //const responses = await Promise.all([request1]).catch((err) => {
+      //  logger.error(`[AI] failed to inference. err: ${err}`);
+      //  return null;
+      //});
+      //
+      //if(!responses){
+      //  return res.status(500).json({
+      //    error: true,
+      //    message: 'failed to do inference',
+      //  });
+      //}
+      //
 
-      if(responses[0]){
-        const score = responses[0][0].predictions[0].listValue.values[0].numberValue;
-        responseData.score = score;
-      }
-
+      //if(request1){
+      //  const score = request1[0].predictions[0].listValue.values[0].numberValue;
+      //  responseData.score = score;
+      //}
+      //
       const cvName = Object.keys(responseData.cv)[0];
       const personalInfo = responseData.cv[cvName]['Personal Info'];
       const skills = responseData.cv[cvName]['Skills'];
