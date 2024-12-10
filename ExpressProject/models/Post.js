@@ -12,7 +12,7 @@ const Post = sequelize.define('post', {
     allowNull: false
   },
   description: {
-    type: Sequelize.STRING,
+    type: DataTypes.TEXT,
   },
   summary: {
     type: Sequelize.STRING,
@@ -21,7 +21,7 @@ const Post = sequelize.define('post', {
     type: Sequelize.STRING,
   },
   detail: {
-    type: Sequelize.STRING,
+    type: DataTypes.TEXT,
   },
   image: {
     type: Sequelize.STRING,

@@ -210,6 +210,8 @@ exports.uploadCv = async (req, res) => {
         const score = ret[0].predictions[0].listValue.values[0].numberValue;
         responseData.score = score;
       }catch(err){
+        console.log(model);
+        console.log(err);
         logger.error('[AI] failed to do inference');
         return res.status(500).json({
           error: true,
