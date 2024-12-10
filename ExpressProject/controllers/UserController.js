@@ -201,7 +201,6 @@ exports.uploadCv = async (req, res) => {
       }
 
       const model = getScoringModel();
-      let 
       try{
         const ret = model.predict({
           input_ids: jsonObject.input_ids[0],
@@ -217,11 +216,11 @@ exports.uploadCv = async (req, res) => {
           message: 'failed to do inference',
         });
       }
-      const request1 = await getScoringModel().predict({
-          input_ids: jsonObject.input_ids[0],
-          attention_mask: jsonObject.attention_mask[0],
-          numerical_features: jsonObject.numerical_features[0],
-      }).data();
+      //const request1 = await getScoringModel().predict({
+      //    input_ids: jsonObject.input_ids[0],
+      //    attention_mask: jsonObject.attention_mask[0],
+      //    numerical_features: jsonObject.numerical_features[0],
+      //}).data();
 
       //const responses = await Promise.all([request1]).catch((err) => {
       //  logger.error(`[AI] failed to inference. err: ${err}`);
