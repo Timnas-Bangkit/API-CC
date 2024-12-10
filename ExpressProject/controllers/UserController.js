@@ -9,7 +9,7 @@ const { cvparsing } = require('../config/pubsub.config');
 const axios = require('axios');
 const { Skills, WorkExp, Certs } = require('../models/CV');
 const { getCvScore } = require('../config/vertex.config');
-const { getScoringModel } = require('../helper/model');
+const { getScoringModel, predictScore } = require('../helper/model');
 const phoneUtil = require('google-libphonenumber').PhoneNumberUtil.getInstance();
 
 exports.logout = async (req, res) => {
@@ -199,20 +199,13 @@ exports.uploadCv = async (req, res) => {
       const responseData = {
         cv: jsonObject.cv,
       }
-      console.log(jsonObject.input_ids)
-      console.log(jsonObject.attention_mask)
-      console.log(jsonObject.numerical_features)
 
-      console.log(scoring.inputs);
-      console.log(scoring.outputs);
-      const model = getScoringModel();
       try{
-        const ret = model.predict({
-          input_ids: jsonObject.input_ids[0],
-          attention_mask: jsonObject.attention_mask[0],
+        const score = await predictScore({
+          input_ids: jsonObject.input_ids[0], //int32
+          attention_mask: jsonObject.attention_mask[0], //int32
           numerical_features: jsonObject.numerical_features[0],
-        }).data();
-        const score = ret[0].predictions[0].listValue.values[0].numberValue;
+        });
         responseData.score = score;
       }catch(err){
         console.log(err);
@@ -222,6 +215,24 @@ exports.uploadCv = async (req, res) => {
           message: 'failed to do inference',
         });
       }
+
+      //const model = getScoringModel();
+      //try{
+      //  const ret = model.predict({
+      //    input_ids: jsonObject.input_ids[0], //int32
+      //    attention_mask: jsonObject.attention_mask[0], //int32
+      //    numerical_features: jsonObject.numerical_features[0],
+      //  }).data();
+      //  const score = ret[0].predictions[0].listValue.values[0].numberValue;
+      //  responseData.score = score;
+      //}catch(err){
+      //  console.log(err);
+      //  logger.error('[AI] failed to do inference');
+      //  return res.status(500).json({
+      //    error: true,
+      //    message: 'failed to do inference',
+      //  });
+      //}
       //const request1 = await getScoringModel().predict({
       //    input_ids: jsonObject.input_ids[0],
       //    attention_mask: jsonObject.attention_mask[0],
