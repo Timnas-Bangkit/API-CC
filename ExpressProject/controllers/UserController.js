@@ -202,11 +202,11 @@ exports.uploadCv = async (req, res) => {
 
       const model = getScoringModel();
       try{
-        const ret = model.predict({
+        const ret = model.predict([{
           input_ids: jsonObject.input_ids[0],
           attention_mask: jsonObject.attention_mask[0],
           numerical_features: jsonObject.numerical_features[0],
-        }).data();
+        }]).data();
         const score = ret[0].predictions[0].listValue.values[0].numberValue;
         responseData.score = score;
       }catch(err){
