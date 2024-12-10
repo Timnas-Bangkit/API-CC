@@ -31,6 +31,7 @@ steps:
       - '--add-cloudsql-instances'
       - '$PROJECT_ID:$_SQL_INSTANCE'
       - '--allow-unauthenticated'
+      - '--memory 2024MiB'
 
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'gcloud'
