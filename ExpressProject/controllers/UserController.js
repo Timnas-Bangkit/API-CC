@@ -199,18 +199,22 @@ exports.uploadCv = async (req, res) => {
       const responseData = {
         cv: jsonObject.cv,
       }
+      console.log(jsonObject.input_ids)
+      console.log(jsonObject.attention_mask)
+      console.log(jsonObject.numerical_features)
 
+      console.log(scoring.inputs);
+      console.log(scoring.outputs);
       const model = getScoringModel();
       try{
-        const ret = model.predict([{
+        const ret = model.predict({
           input_ids: jsonObject.input_ids[0],
           attention_mask: jsonObject.attention_mask[0],
           numerical_features: jsonObject.numerical_features[0],
-        }]).data();
+        }).data();
         const score = ret[0].predictions[0].listValue.values[0].numberValue;
         responseData.score = score;
       }catch(err){
-        console.log(model);
         console.log(err);
         logger.error('[AI] failed to do inference');
         return res.status(500).json({
