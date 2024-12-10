@@ -32,7 +32,7 @@ steps:
       - '$PROJECT_ID:$_SQL_INSTANCE'
       - '--allow-unauthenticated'
       - '--memory' 
-      - '2024MiB'
+      - '2024Mi'
 
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'gcloud'
