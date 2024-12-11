@@ -32,7 +32,7 @@ steps:
       - '$PROJECT_ID:$_SQL_INSTANCE'
       - '--allow-unauthenticated'
       - '--memory' 
-      - '2024Mi'
+      - '4Gi'
       - '--cpu'
       - '4'
       - '--cpu-boost'
