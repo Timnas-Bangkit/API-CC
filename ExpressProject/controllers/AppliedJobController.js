@@ -120,7 +120,14 @@ exports.listCandidates = async (req, res) => {
     attributes: ['id', 'title', 'description', 'image'],
   });
   
-  if(await req.user.hasPost(post.id)){
+  if(!post){
+    return res.status(404).json({
+      error: true,
+      message: 'post id not found',
+    });
+  }
+
+  if(await req.user.hasPost(post)){
     return res.status(200).json({
       error: false,
       data: post,
@@ -138,13 +145,15 @@ exports.updateCandidateStatus = async (req, res) => {
   const { status } = req.body;
   const { id, userid } = req.params;
 
-  const post = Post.findByPk(id, {
+  const post = await Post.findByPk(id, {
     include: [
-      {model: Application, where: {userId: userid}, include: [
+      {model: Application, include: [
         {model: User, include: [
           {model: UserProfile, attributes: ['name', 'profilePic']},
-        ], attributes: ['id']}
-      ], attributes: ['status']}
+        ], attributes: ['id'], as: 'user'},
+      ], attributes: ['status'],
+        where: {userId: userid}
+      }
     ], 
     attributes: ['id', 'title', 'description', 'image'],
   });
@@ -152,15 +161,24 @@ exports.updateCandidateStatus = async (req, res) => {
   if(!post){
     return res.status(404).json({
       error: true,
-      message: 'id not found',
+      message: 'id not found for cadidate or post',
     })
   }
 
-  post.application.status = status;
-  await post.save();
+  if(await req.user.hasPost(post)){
+    post.applications[0].status = status;
+    await Application.update({status: status}, {
+      where: { postId: id, userId: userid },
+    });
 
-  return res.status(200).json({
-    error: false,
-    data: post,
-  })
+    return res.status(200).json({
+      error: false,
+      data: post,
+    });
+  }else{
+    return res.status(403).json({
+      error: true,
+      message: 'post not owned',
+    });
+  }
 }
