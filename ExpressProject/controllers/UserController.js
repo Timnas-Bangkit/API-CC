@@ -145,6 +145,8 @@ exports.deleteProfilePic = async (req, res) => {
 }
 
 exports.uploadCv = async (req, res) => {
+  let timeout;
+
   const cv = req.file;
   const filename = privateBucketConfig.cvPath + generateRandomFilename(cv.originalname);
   const fileupload = privateBucket.file(filename);
@@ -152,6 +154,13 @@ exports.uploadCv = async (req, res) => {
     contentType: cv.mimetype
   }).then(() => {
     logger.info(`[WEB] object saved`);
+    timeout = setTimeout(() => {
+      sub.close();
+      return res.status(500).json({
+        error: true,
+        message: 'timeout!',
+      });
+    }, 40000);
   }).catch((err) => {
     console.log(err);
     return res.status(500);
@@ -161,19 +170,13 @@ exports.uploadCv = async (req, res) => {
     .topic(cvparsing.pubsubTopic)
     .subscription(cvparsing.pubsubSubs, {ackDeadline: 10});
 
-  const timeout = setTimeout(() => {
-    sub.close();
-    return res.status(500).json({
-      error: true,
-      message: 'timeout!',
-    });
-  }, 20000);
 
   sub.on('message', async (message) => {
     const data = JSON.parse(message.data.toString());
     const filename_json = filename.replace('.pdf', '.json')
     if(data.filename == filename_json){
       clearTimeout(timeout);
+      console.log('message ack\'ed');
       message.ack();
       sub.close();
       
@@ -188,24 +191,19 @@ exports.uploadCv = async (req, res) => {
         });
         jsonObject = JSON.parse(buffer.toString('utf-8'));
       }
-      //
-      //logger.info(`[WEB] request for inference`);
-      //const request1 = getCvScore({
-      //    input_ids: jsonObject.input_ids[0],
-      //    attention_mask: jsonObject.attention_mask[0],
-      //    numerical_features: jsonObject.numerical_features[0],
-      //});
 
       const responseData = {
         cv: jsonObject.cv,
       }
 
       try{
+        console.log('inferencing...');
         const score = await predictScore({
           input_ids: jsonObject.input_ids[0], //int32
           attention_mask: jsonObject.attention_mask[0], //int32
           numerical_features: jsonObject.numerical_features[0],
         });
+        console.log('done inferencing...');
         responseData.score = score;
       }catch(err){
         console.log(err);
@@ -216,47 +214,6 @@ exports.uploadCv = async (req, res) => {
         });
       }
 
-      //const model = getScoringModel();
-      //try{
-      //  const ret = model.predict({
-      //    input_ids: jsonObject.input_ids[0], //int32
-      //    attention_mask: jsonObject.attention_mask[0], //int32
-      //    numerical_features: jsonObject.numerical_features[0],
-      //  }).data();
-      //  const score = ret[0].predictions[0].listValue.values[0].numberValue;
-      //  responseData.score = score;
-      //}catch(err){
-      //  console.log(err);
-      //  logger.error('[AI] failed to do inference');
-      //  return res.status(500).json({
-      //    error: true,
-      //    message: 'failed to do inference',
-      //  });
-      //}
-      //const request1 = await getScoringModel().predict({
-      //    input_ids: jsonObject.input_ids[0],
-      //    attention_mask: jsonObject.attention_mask[0],
-      //    numerical_features: jsonObject.numerical_features[0],
-      //}).data();
-
-      //const responses = await Promise.all([request1]).catch((err) => {
-      //  logger.error(`[AI] failed to inference. err: ${err}`);
-      //  return null;
-      //});
-      //
-      //if(!responses){
-      //  return res.status(500).json({
-      //    error: true,
-      //    message: 'failed to do inference',
-      //  });
-      //}
-      //
-
-      //if(request1){
-      //  const score = request1[0].predictions[0].listValue.values[0].numberValue;
-      //  responseData.score = score;
-      //}
-      //
       const cvName = Object.keys(responseData.cv)[0];
       const personalInfo = responseData.cv[cvName]['Personal Info'];
       const skills = responseData.cv[cvName]['Skills'];

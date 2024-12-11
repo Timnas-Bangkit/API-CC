@@ -33,6 +33,9 @@ steps:
       - '--allow-unauthenticated'
       - '--memory' 
       - '2024Mi'
+      - '--cpu'
+      - '4'
+      - '--cpu-boost'
 
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'gcloud'
