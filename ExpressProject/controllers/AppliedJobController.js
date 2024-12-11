@@ -109,21 +109,29 @@ exports.listMyAppliedJobs = async (req, res) => {
 };
 
 exports.listCandidates = async (req, res) => {
-  const post = Post.findByPk(req.params.id, {
+  const post = await Post.findByPk(req.params.id, {
     include: [
       {model: Application, include: [
         {model: User, include: [
           {model: UserProfile, attributes: ['name', 'profilePic']},
-        ], attributes: ['id']}
+        ], attributes: ['id'], as: 'user'}
       ], attributes: ['status']}
     ], 
     attributes: ['id', 'title', 'description', 'image'],
   });
+  
+  if(await req.user.hasPost(post.id)){
+    return res.status(200).json({
+      error: false,
+      data: post,
+    });
+  }else{
+    return res.status(403).json({
+      error: true,
+      message: 'post not owned',
+    });
+  }
 
-  return res.status(200).json({
-    error: false,
-    data: post,
-  })
 }
 
 exports.updateCandidateStatus = async (req, res) => {
