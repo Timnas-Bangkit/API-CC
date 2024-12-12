@@ -160,7 +160,7 @@ exports.uploadCv = async (req, res) => {
         error: true,
         message: 'timeout!',
       });
-    }, 40000);
+    }, 75000);
   }).catch((err) => {
     console.log(err);
     return res.status(500);
@@ -193,7 +193,8 @@ exports.uploadCv = async (req, res) => {
       }
 
       const responseData = {
-        cv: jsonObject.cv,
+        cv: jsonObject.cv || null,
+        jobRole: jsonObject.jobRole || null,
       }
 
       try{
@@ -238,6 +239,7 @@ exports.uploadCv = async (req, res) => {
         cv = await req.user.createCv();
       }
       cv.score = responseData.score;
+      cv.jobRole = responseData.jobRole;
       skills.forEach(async (e) => {
         await cv.createSkill({skill: e});
       });

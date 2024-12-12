@@ -13,6 +13,10 @@ const CV = sequelize.define('cv', {
     type: DataTypes.FLOAT,
   },
 
+  jobRole: {
+    type: DataTypes.STRING,
+  },
+
   userId: {
     type: DataTypes.INTEGER,
     references: {
@@ -155,6 +159,7 @@ CV.prototype.response = async function (){
 
   return {
     score: this.score,
+    jobRole: this.jobRole,
     skills: arr1,
     workExperiences: ret[2],
     certifications: arr2,
