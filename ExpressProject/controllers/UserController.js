@@ -288,30 +288,46 @@ exports.getCv = async (req, res) => {
     })
   }
 
-  const ret = {
-    id: user.id,
-    username: user.username,
-    email: user.email,
-    role: user.role,
-    cv: await (await user.getCv()).response(),
+  const cv = await user.getCv();
+  if(cv){
+    const ret = {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      role: user.role,
+      cv: await cv.response(),
   }
 
-  return res.status(200).json({
-    error: false,
-    data: ret,
-  });
+    return res.status(200).json({
+      error: false,
+      data: ret,
+    });
+  }else{
+    return res.status(404).json({
+      error: true,
+      message: 'cv not found',
+    });
+  }
 };
 
 exports.getMyCv = async (req, res) => {
-  const ret = {
-    id: req.user.id,
-    username: req.user.username,
-    email: req.user.email,
-    role: req.user.role,
-    cv: await (await req.user.getCv()).response(),
+  const cv = await req.user.getCv();
+  if(cv){
+    const ret = {
+      id: req.user.id,
+      username: req.user.username,
+      email: req.user.email,
+      role: req.user.role,
+      cv: await cv.response(),
+    }
+    return res.status(200).json({
+      error: false,
+      data: ret,
+    });
+  }else{
+    return res.status(404).json({
+      error: true,
+      message: 'cv not found',
+    });
   }
-  return res.status(200).json({
-    error: false,
-    data: ret,
-  });
 }
