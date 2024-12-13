@@ -11,22 +11,24 @@ This is the backend API service for the FindUp application, a platform designed 
 - [x] Authentication
 - [x] Several user actions
 - [x] Posts
-- [ ] CV detection
+- [x] CV detection
   - [x] Scoring
-  - [ ] etc.
-- [ ] etc.
+  - [x] 'Job role' classification.
+- [x] Worker application
 
 ## Technologies Used
 - Node.js
 - Express.js
 - Sequelize.js
 - JWT for authentication
+- TFjs
 - Google Cloud Platform (GCP):
   - Cloud Run
   - Cloud Storage
   - Cloud SQL
   - Cloud Run Function
   - Pub/Sub
+  - Cloud build
  
 ## Setup & Installation
 1. Clone repository
