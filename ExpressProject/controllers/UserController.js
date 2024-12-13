@@ -240,6 +240,7 @@ exports.uploadCv = async (req, res) => {
       }
       cv.score = responseData.score;
       cv.jobRole = responseData.jobRole;
+      cv.email = personalInfo['Email'];
       skills.forEach(async (e) => {
         await cv.createSkill({skill: e});
       });
@@ -280,7 +281,11 @@ exports.uploadCv = async (req, res) => {
 
 exports.getCv = async (req, res) => {
   const userid = req.params.id;
-  const user = await User.findByPk(userid);
+  const user = await User.findByPk(userid, {
+    include: [
+      {model: UserProfile, attributes: ['email', 'name']},
+    ]
+  });
   if(!user){
     return res.status(404).json({
       error: true,
@@ -292,8 +297,8 @@ exports.getCv = async (req, res) => {
   if(cv){
     const ret = {
       id: user.id,
-      username: user.username,
-      email: user.email,
+      username: user.user_profile.name,
+      email: user.user_profile.email,
       role: user.role,
       cv: await cv.response(),
   }
@@ -311,12 +316,13 @@ exports.getCv = async (req, res) => {
 };
 
 exports.getMyCv = async (req, res) => {
+  const profile = await req.user.getUser_profile();
   const cv = await req.user.getCv();
   if(cv){
     const ret = {
       id: req.user.id,
-      username: req.user.username,
-      email: req.user.email,
+      username: profile.name,
+      email: profile.email,
       role: req.user.role,
       cv: await cv.response(),
     }

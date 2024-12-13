@@ -1,4 +1,4 @@
-const {Post, User, UserProfile, Application} = require('../models')
+const {Post, User, UserProfile, Application, CV} = require('../models')
 
 exports.apply = async (req, res) => {
   const postid = req.params.id;
@@ -114,6 +114,7 @@ exports.listCandidates = async (req, res) => {
       {model: Application, include: [
         {model: User, include: [
           {model: UserProfile, attributes: ['name', 'profilePic']},
+          {model: CV, attributes: ['score', 'jobRole']}
         ], attributes: ['id'], as: 'user'}
       ], attributes: ['status']}
     ], 

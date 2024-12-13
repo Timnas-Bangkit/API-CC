@@ -17,6 +17,10 @@ const CV = sequelize.define('cv', {
     type: DataTypes.STRING,
   },
 
+  email: {
+    type: DataTypes.STRING,
+  },
+
   userId: {
     type: DataTypes.INTEGER,
     references: {
