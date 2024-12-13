@@ -298,7 +298,7 @@ exports.getCv = async (req, res) => {
     const ret = {
       id: user.id,
       username: user.user_profile.name,
-      email: user.user_profile.email,
+      email: cv.email,
       role: user.role,
       cv: await cv.response(),
   }
@@ -322,7 +322,7 @@ exports.getMyCv = async (req, res) => {
     const ret = {
       id: req.user.id,
       username: profile.name,
-      email: profile.email,
+      email: cv.email,
       role: req.user.role,
       cv: await cv.response(),
     }
