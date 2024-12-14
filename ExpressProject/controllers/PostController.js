@@ -6,8 +6,12 @@ const { logger } = require('../utils/logger');
 const { Op } = require('sequelize');
 
 const getNarrowData = async (user, id=null) => {
-  let userRole = '';
-  userRole = (await user.getCv()).jobRole;
+  let userRole = (await user.getCv());
+  if(userRole == null){
+    userRole = '';
+  }else{
+    userRole = userRole.jobRole;
+  }
 
   if(id == null){
     const ret = await Post.findAll({include: [
@@ -86,6 +90,7 @@ exports.create = async (req, res) => {
   post.description = description;
   if(summary) post.summary = summary;
   if(detail) post.detail = detail;
+  //TODO add some filtering things (use enum)
   if(neededRole) post.neededRole = neededRole.toString().toLowerCase();
   post.image = null;
 
