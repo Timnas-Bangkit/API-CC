@@ -239,7 +239,7 @@ exports.uploadCv = async (req, res) => {
         cv = await req.user.createCv();
       }
       cv.score = responseData.score;
-      cv.jobRole = responseData.jobRole;
+      cv.jobRole = responseData.jobRole.toLowerCase();
       cv.email = personalInfo['Email'];
       skills.forEach(async (e) => {
         await cv.createSkill({skill: e});

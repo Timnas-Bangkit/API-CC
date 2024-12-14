@@ -3,14 +3,21 @@ const { generateRandomFilename } = require('../helper/generator');
 const multer = require('multer');
 const { bucket, bucketConfig } = require('../config/bucket.config')
 const { logger } = require('../utils/logger');
+const { Op } = require('sequelize');
 
 const getNarrowData = async (user, id=null) => {
+  let userRole = '';
+  userRole = (await user.getCv()).jobRole;
+
   if(id == null){
     const ret = await Post.findAll({include: [
       {model: User, attributes: ['id'], 
         include: [{model: UserProfile, attributes: ['name', 'profilePic']}]},
-    ], attributes: ['id', 'title', 'description', 'image', 'likeCount', 'updatedAt', 'createdAt']});
-
+    ], attributes: ['id', 'title', 'description', 'image', 'likeCount', 'updatedAt', 'createdAt'],
+    where: {
+      neededRole: { [Op.like]: `%${userRole}%` },
+    },
+    });
     for(const post of ret){
       post.setDataValue('isLiked', await post.hasUserLike(user));
     }
@@ -79,7 +86,7 @@ exports.create = async (req, res) => {
   post.description = description;
   if(summary) post.summary = summary;
   if(detail) post.detail = detail;
-  if(neededRole) post.neededRole = neededRole.toString();
+  if(neededRole) post.neededRole = neededRole.toString().toLowerCase();
   post.image = null;
 
   if(image){
