@@ -6,21 +6,11 @@ const { logger } = require('../utils/logger');
 const { Op } = require('sequelize');
 
 const getNarrowData = async (user, id=null) => {
-  let userRole = (await user.getCv());
-  if(userRole == null){
-    userRole = '';
-  }else{
-    userRole = (userRole.jobRole == null) ? '' : userRole.jobRole;
-  }
-
   if(id == null){
     const ret = await Post.findAll({include: [
       {model: User, attributes: ['id'], 
         include: [{model: UserProfile, attributes: ['name', 'profilePic']}]},
     ], attributes: ['id', 'title', 'description', 'image', 'likeCount', 'updatedAt', 'createdAt'],
-    where: {
-      neededRole: { [Op.like]: `%${userRole}%` },
-    },
     });
     for(const post of ret){
       post.setDataValue('isLiked', await post.hasUserLike(user));
@@ -79,6 +69,32 @@ exports.get = async (req, res) => {
     error: false,
     data: post,
   });
+}
+
+exports.getRecommendation = async (req, res) => {
+  let userRole = (await req.user.getCv());
+  if(userRole == null){
+    userRole = '';
+  }else{
+    userRole = (userRole.jobRole == null) ? '' : userRole.jobRole;
+  }
+
+  const ret = await Post.findAll({include: [
+    {model: User, attributes: ['id'], 
+      include: [{model: UserProfile, attributes: ['name', 'profilePic']}]},
+  ], attributes: ['id', 'title', 'description', 'image', 'likeCount', 'updatedAt', 'createdAt'],
+    where: {
+      neededRole: { [Op.like]: `%${userRole}%` },
+    },
+  });
+  for(const post of ret){
+    post.setDataValue('isLiked', await post.hasUserLike(req.user));
+  }
+
+  return res.status(200).json({
+    error: false,
+    data: ret
+  })
 }
 
 exports.create = async (req, res) => {

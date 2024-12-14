@@ -19,6 +19,8 @@ router.get('/', authMiddleware.authorize(['owner', 'techWorker'], enumPermission
 router.get('/me', authMiddleware.authorize(['owner', 'techWorker'], enumPermissions.readJob), postController.getMine);
 router.get('/:id(\\d+)', authMiddleware.authorize(['owner', 'techWorker'], enumPermissions.readJob), postController.get);
 
+router.get('/recommendation', authMiddleware.authorize(['techWorker'], enumPermissions.listAllJobs), postController.getRecommendation);
+
 router.post('/', authMiddleware.authorize(['owner'], enumPermissions.createJob), 
   upload.single('image'), 
   checkSchema(postSchema),
