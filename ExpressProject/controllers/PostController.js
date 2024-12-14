@@ -10,7 +10,7 @@ const getNarrowData = async (user, id=null) => {
   if(userRole == null){
     userRole = '';
   }else{
-    userRole = userRole.jobRole;
+    userRole = (userRole.jobRole == null) ? '' : userRole.jobRole;
   }
 
   if(id == null){
